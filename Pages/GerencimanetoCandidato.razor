@@ -1,0 +1,330 @@
+@page "/registro-candidato"
+@using AppConcurso.Models
+@using AppConcurso.Services
+@using Microsoft.AspNetCore.Components.Forms
+@using Microsoft.JSInterop
+@inject CandidatoService CandidatoService
+@inject NavigationManager NavigationManager
+@inject ToastService ToastService
+@inject IJSRuntime JS
+@inherits FlowbitePage
+
+<PageTitle>Registro de Candidato</PageTitle>
+
+<div class="flex flex-col gap-4">
+  <Header Title="Registro de Candidato"
+    Description="Cadastre novos candidatos para o concurso, incluindo nome, CPF e data de nascimento." />
+
+  <div class="flex flex-row gap-8 w-full">
+    <div class="bg-gray-50 dark:bg-gray-800 rounded-lg w-full shadow-sm border-2 border-gray-200 dark:border-gray-700">
+      <div class="px-4 py-3 flex flex-row gap-6 text-gray-700 dark:text-gray-300">
+        <div class="flex flex-col gap-2 w-full">
+          <div class="font-bold">Pesquisa de texto</div>
+          <div class="relative z-0 w-full group">
+            <input @bind="filtroTexto" @bind:event="oninput" @onkeyup="AplicarFiltro"
+              class="block py-2.5 px-0 w-full text-sm text-gray-900 bg-transparent border-0 border-b-2 border-gray-300 appearance-none dark:text-white dark:border-gray-600 dark:focus:border-blue-500 focus:outline-none focus:ring-0 focus:border-blue-600 peer"
+              placeholder="Buscar por nome ou CPF" />
+          </div>
+        </div>
+        <div class="flex flex-col gap-2 min-w-56">
+          <label for="countries" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Ordenação</label>
+          <select id="countries" @bind="tipoOrdenacao" @bind:after="AplicarFiltro"
+            class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500">
+            <option selected value="nome_asc">Nome (A-Z)</option>
+            <option value="nome_desc">Nome (Z-A)</option>
+            <option value="data_asc">Data de Nascimento (Mais antiga)</option>
+            <option value="data_desc">Data de Nascimento (Mais recente)</option>
+          </select>
+        </div>
+        <div class="flex items-end w-44">
+          <button @onclick="LimparFiltros"
+            class="px-4 py-2 text-sm h-12 font-medium text-white bg-gray-600 rounded-lg hover:bg-gray-700 focus:ring-4 focus:outline-none focus:ring-gray-300">
+            Limpar Filtros
+          </button>
+        </div>
+      </div>
+    </div>
+    <button type="button" @onclick="ShowModal"
+      class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm w-48 px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">Cadastrar
+      Candidato</button>
+  </div>
+
+  <h2 class="text-xl font-semibold text-gray-800 dark:text-white">Candidatos Cadastrados</h2>
+
+  <div class="grid grid-cols-[repeat(2,minmax(100px,1fr))] lg:grid-cols-[repeat(4,minmax(100px,1fr))] gap-4">
+    @if (candidatosListFiltrada != null && candidatosListFiltrada.Any())
+    {
+      @foreach (var candidatoItem in candidatosListFiltrada)
+      {
+        <div
+          class="bg-gray-50 dark:bg-gray-800 rounded-lg shadow-sm border-2 border-gray-200 dark:border-gray-700 flex flex-col justify-between">
+          <div class="px-4 py-3 grid grid-cols-3 text-gray-700 dark:text-gray-300">
+            <div>
+              <div class="font-bold">Nome</div>
+              <div>@candidatoItem.Nome</div>
+            </div>
+            <div>
+              <div class="font-bold">CPF</div>
+              <div>@candidatoItem.Cpf</div>
+            </div>
+            <div>
+              <div class="font-bold">Data de Nascimento</div>
+              <div>@candidatoItem.DataNascimento.ToString("dd/MM/yyyy")</div>
+            </div>
+          </div>
+
+          <div class="flex justify-center gap-6 py-3 px-4 bg-gray-200 dark:bg-gray-700 rounded-b-lg">
+            <button data-modal-target="default-modal" data-modal-toggle="default-modal"
+              class="inline-flex cursor-pointer items-center px-3 py-2 text-sm font-medium text-center text-white bg-blue-700 rounded-lg hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
+              @onclick="() => EditarCandidato(candidatoItem)">
+              <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                xmlns="http://www.w3.org/2000/svg">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z">
+                </path>
+              </svg>
+              Editar
+            </button>
+
+            <button @onclick="() => ExcluirCandidato(candidatoItem.Id)"
+              class="inline-flex cursor-pointer items-center px-3 py-2 text-sm font-medium text-center text-white bg-red-700 rounded-lg hover:bg-red-800 focus:ring-4 focus:outline-none focus:ring-red-300 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-800">
+              <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                xmlns="http://www.w3.org/2000/svg">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16">
+                </path>
+              </svg>
+              Excluir
+            </button>
+          </div>
+        </div>
+      }
+    }
+    else
+    {
+      <div
+        class="bg-white w-full col-span-4 dark:bg-gray-800 p-4 rounded-lg text-center text-gray-500 dark:text-gray-400 border-2 border-gray-200 dark:border-gray-700">
+        Nenhum candidato cadastrado
+      </div>
+    }
+  </div>
+
+  <!-- Main modal -->
+  <div id="default-modal" tabindex="-1" aria-hidden="true" data-modal-backdrop="static"
+    class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full">
+    <div class="relative p-4 w-full max-w-2xl max-h-full">
+      <!-- Modal content -->
+      <div class="relative bg-white rounded-lg shadow-sm dark:bg-gray-700">
+        <!-- Modal header -->
+        <div
+          class="flex items-center justify-between p-4 md:p-5 border-b rounded-t dark:border-gray-600 border-gray-200">
+          <h3 class="text-xl font-semibold text-gray-900 dark:text-white">
+            @(modoEdicao ? "Editar Candidato" : "Registro de Candidato")
+          </h3>
+          <button type="button" @onclick="CloseModal"
+            class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white"
+            data-modal-hide="default-modal">
+            <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
+              <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6" />
+            </svg>
+            <span class="sr-only">Fechar modal</span>
+          </button>
+        </div>
+        <!-- Modal body -->
+        <EditForm Model="@candidato" OnValidSubmit="HandleValidSubmit" class="p-4">
+          <DataAnnotationsValidator />
+
+          <div class="relative z-0 w-full mb-5 group">
+            <input @bind="candidato.Nome" id="floating_nome"
+              class="block py-2.5 px-0 w-full text-sm text-gray-900 bg-transparent border-0 border-b-2 border-gray-300 appearance-none dark:text-white dark:border-gray-600 dark:focus:border-blue-500 focus:outline-none focus:ring-0 focus:border-blue-600 peer"
+              placeholder=" " required />
+            <label for="floating_nome"
+              class="peer-focus:font-medium absolute text-sm text-gray-500 dark:text-gray-400 duration-300 transform -translate-y-6 scale-75 top-3 -z-10 origin-[0] peer-focus:start-0 rtl:peer-focus:translate-x-1/4 peer-focus:text-blue-600 peer-focus:dark:text-blue-500 peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-6">
+              Nome</label>
+          </div>
+
+          <div class="relative z-0 w-full mb-5 group">
+            <input @bind="candidato.Cpf" id="floating_cpf"
+              class="block py-2.5 px-0 w-full text-sm text-gray-900 bg-transparent border-0 border-b-2 border-gray-300 appearance-none dark:text-white dark:border-gray-600 dark:focus:border-blue-500 focus:outline-none focus:ring-0 focus:border-blue-600 peer"
+              placeholder=" " required />
+            <label for="floating_cpf"
+              class="peer-focus:font-medium absolute text-sm text-gray-500 dark:text-gray-400 duration-300 transform -translate-y-6 scale-75 top-3 -z-10 origin-[0] peer-focus:start-0 rtl:peer-focus:translate-x-1/4 peer-focus:text-blue-600 peer-focus:dark:text-blue-500 peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-6">
+              CPF</label>
+          </div>
+
+          <div class="relative z-0 w-full mb-5 group">
+            <div class="absolute inset-y-0 end-1 flex items-center ps-3 pointer-events-none">
+              <svg class="w-4 h-4 text-gray-500 dark:text-gray-400" xmlns="http://www.w3.org/2000/svg"
+                fill="currentColor" viewBox="0 0 20 20">
+                <path
+                  d="M20 4a2 2 0 0 0-2-2h-2V1a1 1 0 0 0-2 0v1h-3V1a1 1 0 0 0-2 0v1H6V1a1 1 0 0 0-2 0v1H2a2 2 0 0 0-2 2v2h20V4ZM0 18a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8H0v10Zm5-8h10a1 1 0 0 1 0 2H5a1 1 0 0 1 0-2Z" />
+              </svg>
+            </div>
+            <input id="datepicker" type="date" @bind="candidato.DataNascimento"
+              class="block py-2.5 px-0 w-full text-sm text-gray-900 bg-transparent border-0 border-b-2 border-gray-300 appearance-none dark:text-white dark:border-gray-600 dark:focus:border-blue-500 focus:outline-none focus:ring-0 focus:border-blue-600 peer"
+              placeholder="Selecione a data">
+          </div>
+
+          <!-- Modal footer -->
+          <div class="flex items-center rounded-b dark:border-gray-600">
+            <button data-modal-hide="default-modal" type="submit"
+              class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">
+              @(modoEdicao ? "Atualizar" : "Cadastrar")</button>
+
+            <button data-modal-hide="default-modal" type="button" @onclick="CloseModal"
+              class="py-2.5 px-5 ms-3 text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-100 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700">Cancelar</button>
+          </div>
+        </EditForm>
+      </div>
+    </div>
+  </div>
+</div>
+
+@code {
+  private Candidato candidato = new Candidato();
+  private string mensagem = string.Empty;
+  private List<Candidato> candidatosList = new List<Candidato>();
+  private List<Candidato> candidatosListFiltrada = new List<Candidato>();
+  private bool modoEdicao = false;
+  private string filtroTexto = "";
+  private string tipoOrdenacao = "nome_asc";
+
+  protected override async Task OnInitializedAsync()
+  {
+    await CarregarCandidatos();
+  }
+
+  private async Task CarregarCandidatos()
+  {
+    try
+    {
+      candidatosList = await CandidatoService.GetCandidatos();
+      AplicarFiltro();
+    }
+    catch (Exception ex)
+    {
+      ToastService.ShowError($"Erro ao carregar candidatos: {ex.Message}");
+    }
+  }
+
+  private async Task CloseModal()
+  {
+    LimparCampos();
+    await JS.InvokeVoidAsync("flowbiteInterop.closeModal", "default-modal");
+  }
+
+  private async Task ShowModal()
+  {
+    if (!modoEdicao)
+    {
+      LimparCampos();
+    }
+    await JS.InvokeVoidAsync("flowbiteInterop.showModal", "default-modal");
+  }
+
+  private void AplicarFiltro()
+  {
+    var resultados = string.IsNullOrWhiteSpace(filtroTexto)
+    ? candidatosList
+    : candidatosList.Where(c =>
+    c.Nome.Contains(filtroTexto, StringComparison.OrdinalIgnoreCase) ||
+    c.Cpf.Contains(filtroTexto, StringComparison.OrdinalIgnoreCase)).ToList();
+
+    switch (tipoOrdenacao)
+    {
+      case "nome_asc":
+        resultados = resultados.OrderBy(c => c.Nome).ToList();
+        break;
+      case "nome_desc":
+        resultados = resultados.OrderByDescending(c => c.Nome).ToList();
+        break;
+      case "data_asc":
+        resultados = resultados.OrderBy(c => c.DataNascimento).ToList();
+        break;
+      case "data_desc":
+        resultados = resultados.OrderByDescending(c => c.DataNascimento).ToList();
+        break;
+    }
+
+    candidatosListFiltrada = resultados;
+  }
+
+  private void LimparFiltros()
+  {
+    filtroTexto = "";
+    tipoOrdenacao = "nome_asc";
+    AplicarFiltro();
+  }
+
+  private void LimparCampos()
+  {
+    candidato = new Candidato();
+    modoEdicao = false;
+  }
+
+  private async Task HandleValidSubmit()
+  {
+    try
+    {
+      if (modoEdicao)
+      {
+        await CandidatoService.UpdateCandidato(candidato);
+        ToastService.ShowSuccess("Candidato atualizado com sucesso!");
+      }
+      else
+      {
+        await CandidatoService.CreateCandidato(candidato);
+        ToastService.ShowSuccess("Candidato cadastrado com sucesso!");
+      }
+
+      LimparCampos();
+      modoEdicao = false;
+      await CarregarCandidatos();
+      await CloseModal();
+    }
+    catch (Exception ex)
+    {
+      Console.WriteLine($"Erro completo: {ex}");
+
+      string mensagemErro = ex.InnerException != null
+      ? $"{ex.Message} - {ex.InnerException.Message}"
+      : ex.Message;
+
+      ToastService.ShowError($"Erro ao {(modoEdicao ? "atualizar" : "cadastrar")} candidato: {mensagemErro}");
+    }
+  }
+
+  private async Task EditarCandidato(Candidato candidatoParaEditar)
+  {
+    LimparCampos();
+    await ShowModal();
+
+    candidato.Id = candidatoParaEditar.Id;
+    candidato.Nome = candidatoParaEditar.Nome;
+    candidato.Cpf = candidatoParaEditar.Cpf;
+    candidato.DataNascimento = candidatoParaEditar.DataNascimento;
+
+    modoEdicao = true;
+  }
+
+  private async Task ExcluirCandidato(int? id)
+  {
+    try
+    {
+      if (id == null)
+      {
+        ToastService.ShowError("ID do candidato não encontrado");
+        return;
+      }
+
+      await CandidatoService.DeleteCandidato(id.Value);
+      await CarregarCandidatos();
+      ToastService.ShowSuccess("Candidato excluído com sucesso!");
+    }
+    catch (Exception ex)
+    {
+      ToastService.ShowError($"Erro ao excluir candidato: {ex.Message}");
+    }
+  }
+}

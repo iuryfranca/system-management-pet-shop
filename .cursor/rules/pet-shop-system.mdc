@@ -1,0 +1,130 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+# Sistema de Gerenciamento Pet Shop - Regras de Desenvolvimento
+
+## Visão Geral do Projeto
+Este é um sistema desenvolvido em **Blazor.NET** com **Tailwind CSS** para gerenciamento completo de pet shops. O sistema inclui cadastros, relatórios, dashboard e autenticação.
+
+## Estrutura do Projeto
+
+### Arquivos Principais
+- [Program.cs](mdc:Program.cs) - Ponto de entrada da aplicação
+- [App.razor](mdc:App.razor) - Componente principal da aplicação
+- [_Imports.razor](mdc:_Imports.razor) - Imports globais do Blazor
+
+### Contexto e Modelos
+- [Context/ContextBD.cs](mdc:Context/ContextBD.cs) - Contexto do Entity Framework
+- Modelos principais:
+  - [Models/Candidato.cs](mdc:Models/Candidato.cs) (parece ser funcionário)
+  - [Models/Cargo.cs](mdc:Models/Cargo.cs)
+  - [Models/Inscricao.cs](mdc:Models/Inscricao.cs)
+  - [Models/CandidatoInscrito.cs](mdc:Models/CandidatoInscrito.cs)
+
+### Páginas Blazor
+- [Pages/Dashboard.razor](mdc:Pages/Dashboard.razor) - Dashboard principal
+- [Pages/GerencimanetoCandidato.razor](mdc:Pages/GerencimanetoCandidato.razor) - Gerenciamento de funcionários
+- [Pages/GerencimanetoCargo.razor](mdc:Pages/GerencimanetoCargo.razor) - Gerenciamento de cargos
+- [Pages/GerencimanetoInscricao.razor](mdc:Pages/GerencimanetoInscricao.razor) - Gerenciamento de inscrições
+
+### Serviços
+- [Services/CandidatoService.cs](mdc:Services/CandidatoService.cs) - Lógica de negócio para funcionários
+- [Services/CargoService.cs](mdc:Services/CargoService.cs) - Lógica de negócio para cargos
+- [Services/InscricaoService.cs](mdc:Services/InscricaoService.cs) - Lógica de negócio para serviços
+- [Services/ToastService.cs](mdc:Services/ToastService.cs) - Serviço para notificações
+
+## Estrutura do Banco de Dados
+
+### Tabelas Principais (baseado no README)
+```sql
+-- Funcionário (mapeado como Candidato no código atual)
+funcionario: id_func, nome_func, cargo_func, telefone_func, email_func, senha_func
+
+-- Animal
+animal: id_animal, nome_ani, tipo_ani, raca_ani, idade_ani, peso_ani, dono_nome, dono_telefone
+
+-- Produto  
+produto: id_produto, nome_prod, marca_prod, valor_prod, estoque, categoria
+
+-- Serviço
+servico: id_servico, nome_serv, descricao_serv, duracao_serv, valor_serv, id_func_fk, id_animal_fk, data_servico, status
+
+-- Relacionamento Serviço-Produto
+servico_produto: id_servico_fk, id_produto_fk, quantidade, valor_unitario
+```
+
+## Funcionalidades Previstas
+
+### CRUD Completo
+- **Funcionários**: Cadastro, listagem, edição, exclusão
+- **Animais**: Gerenciamento de animais clientes
+- **Produtos**: Controle de produtos e estoque  
+- **Serviços**: Cadastro e agendamento de serviços
+
+### Relatórios
+- Serviços por tipo de animal
+- Frequência de visitas de animais
+- Produtividade por funcionário
+
+### Sistema de Autenticação
+- Login seguro para funcionários
+- Diferentes níveis de acesso
+- Tela de perfil do usuário
+
+## Comandos de Desenvolvimento
+
+### Inicialização
+```bash
+# Instalar dependências NPM
+npm install
+
+# Iniciar desenvolvimento com watch
+dotnet watch
+
+# Compilar Tailwind CSS
+npx tailwindcss -i wwwroot/css/input.css -o wwwroot/css/output.css --watch
+
+# Build do projeto
+dotnet build
+```
+
+## Padrões de Desenvolvimento
+
+### Nomenclatura
+- Páginas Blazor: PascalCase (ex: GerenciamentoCandidato.razor)
+- Serviços: PascalCase + "Service" (ex: CandidatoService.cs)
+- Modelos: PascalCase (ex: Funcionario.cs)
+- Propriedades: PascalCase
+- Métodos: PascalCase
+
+### Estrutura de Arquivos
+- Páginas Blazor em `/Pages/`
+- Componentes compartilhados em `/Shared/`
+- Modelos em `/Models/`
+- Serviços em `/Services/`
+- Contexto EF em `/Context/`
+
+### CSS e Styling
+- Usar Tailwind CSS para styling
+- CSS customizado em [wwwroot/css/app.css](mdc:wwwroot/css/app.css)
+- Componentes com CSS específico: usar arquivos `.razor.css`
+
+### Componentes
+- Toast notifications via [Shared/Toast.razor](mdc:Shared/Toast.razor)
+- Layout principal em [Shared/MainLayout.razor](mdc:Shared/MainLayout.razor)
+- Menu de navegação em [Shared/NavMenu.razor](mdc:mcd:Shared/NavMenu.razor)
+
+## Integrações
+- **Flowbite**: Para componentes UI avançados
+- **Tailwind CSS**: Para styling responsivo
+- **Entity Framework**: Para acesso a dados
+- **Blazor Server**: Para interatividade
+
+## Observações Importantes
+- O projeto atual parece estar configurado como um sistema de concurso, mas deve ser adaptado para pet shop
+- Manter a estrutura de serviços e padrões já estabelecidos
+- Implementar autenticação adequada para diferentes níveis de usuário
+- Garantir responsividade e boa UX com Tailwind CSS
+

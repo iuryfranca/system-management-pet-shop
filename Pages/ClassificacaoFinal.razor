@@ -1,0 +1,141 @@
+﻿@page "/classificacao-final"
+@using AppConcurso.Models;
+@using AppConcurso.Services;
+@inject CargoService cargoService;
+@inject CandidatoService candidatoService;
+@inject InscricaoService inscricaoService;
+@inject NavigationManager navegacao;
+
+<Header Title="Classificação Final"
+    Description="Veja a classificação final dos candidatos por cargo, considerando critérios de desempate." />
+
+<div class="flex flex-col gap-4">
+    <div class="flex flex-row gap-8 w-full">
+        <div
+            class="bg-gray-50 dark:bg-gray-800 rounded-lg w-full shadow-sm border-2 border-gray-200 dark:border-gray-700 p-4">
+            <div class="flex flex-col gap-2 w-full">
+                <label for="select_cargo"
+                    class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Cargos:</label>
+                <select id="select_cargo" @onchange="SelecionarCargos"
+                    class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500">
+                    <option selected>Selecione um cargo</option>
+                    @foreach (var item in listCargos)
+                    {
+                        <option value=@item.Id>@item.NomeCargo</option>
+                    }
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <div class="relative overflow-x-auto mt-8">
+        <h4 class="text-xl font-semibold mb-4 text-gray-800 dark:text-white text-center">Resultado Final</h4>
+        @if (naoExisteInscricao)
+        {
+            <div
+                class="bg-white dark:bg-gray-800 p-4 rounded-lg text-center text-gray-500 dark:text-gray-400 border-2 border-gray-200 dark:border-gray-700">
+                Não existe inscrição para este cargo.
+            </div>
+        }
+        else
+        {
+            <table class="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
+                <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
+                    <tr>
+                        <th scope="col" class="px-6 py-3">Posição</th>
+                        <th scope="col" class="px-6 py-3">Nome</th>
+                        <th scope="col" class="px-6 py-3">CPF</th>
+                        <th scope="col" class="px-6 py-3">Data de Nascimento</th>
+                        <th scope="col" class="px-6 py-3">Nº Inscrição</th>
+                        <th scope="col" class="px-6 py-3">Nota Conhecimentos Gerais</th>
+                        <th scope="col" class="px-6 py-3">Nota Conhecimentos Específicos</th>
+                        <th scope="col" class="px-6 py-3">Média de Notas</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @for (int i = 0; i < listaFinalClassificacao.Count; i++)
+                    {
+                        var candidato = listaFinalClassificacao[i];
+                        <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 border-gray-200">
+                            <td class="px-6 py-4 font-bold text-gray-900 whitespace-nowrap dark:text-white">@((i+1).ToString() +
+                                                        "º")</td>
+                    <td class="px-6 py-4">@candidato.Nome</td>
+                    <td class="px-6 py-4">@candidato.Cpf</td>
+                    <td class="px-6 py-4">@candidato.DataNascimento.ToString("dd/MM/yyyy")</td>
+                    <td class="px-6 py-4">@candidato.NumeroInsc</td>
+                    <td class="px-6 py-4">@candidato.NotaConhGerais</td>
+                    <td class="px-6 py-4">@candidato.NotaConhEspecificos</td>
+                    <td class="px-6 py-4">@candidato.MediaDeNotas</td>
+                </tr>
+                                }
+                </tbody>
+            </table>
+        }
+    </div>
+</div>
+
+@code {
+    private Cargo cargo = new Cargo();
+    private List<Cargo> listCargos = new List<Cargo>();
+    private Candidato candidato = new Candidato();
+    private List<CandidatoInscrito> listaCandidatosPorCargo = new List<CandidatoInscrito>();
+    private List<Inscricao> listaInscricoesByCargo = new List<Inscricao>();
+    private List<CandidatoInscrito> listaFinalClassificacao = new List<CandidatoInscrito>();
+
+    private bool naoExisteInscricao = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        listCargos = await cargoService.GetCargos();
+    }
+
+    private async Task SelecionarCargos(ChangeEventArgs e)
+    {
+        if (e.Value.ToString() == "Selecione um cargo")
+        {
+            listaCandidatosPorCargo.Clear();
+            listaFinalClassificacao.Clear();
+            return;
+        }
+
+        naoExisteInscricao = false;
+
+        var id = Int32.Parse(e.Value.ToString());
+
+        cargo = await cargoService.GetCargoById(id);
+        listaInscricoesByCargo = await inscricaoService.GetInscricoesByCargoId(id);
+
+
+        if (listaInscricoesByCargo.Count == 0)
+        {
+            naoExisteInscricao = true;
+        }
+
+        var listaCandidatos = new List<CandidatoInscrito>();
+
+        foreach (var inscricao in listaInscricoesByCargo)
+        {
+            var candidato = await candidatoService.GetCandidatoById(inscricao.CandidatoId);
+            listaCandidatos.Add(new CandidatoInscrito()
+            {
+                Nome = candidato.Nome,
+                Cpf = candidato.Cpf,
+                DataNascimento = candidato.DataNascimento,
+                NumeroInsc = inscricao.NumeroInsc,
+                DataInscricao = inscricao.DataInscricao,
+                NotaConhGerais = inscricao.NotaConhGerais,
+                NotaConhEspecificos = inscricao.NotaConhEspecificos,
+                MediaDeNotas = (inscricao.NotaConhGerais + inscricao.NotaConhEspecificos) / 2
+            });
+        }
+
+        listaCandidatosPorCargo = listaCandidatos;
+
+        listaFinalClassificacao = listaCandidatosPorCargo
+        .OrderByDescending(x => x.MediaDeNotas)
+        .ThenByDescending(x => x.NotaConhEspecificos)
+        .ThenByDescending(x => x.NotaConhGerais)
+        .ThenBy(x => x.DataNascimento)
+        .ToList();
+    }
+}

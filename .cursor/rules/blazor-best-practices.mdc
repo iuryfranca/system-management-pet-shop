@@ -1,0 +1,192 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+# Blazor Pet Shop - Melhores Práticas e Padrões de Código
+
+## Padrões de Desenvolvimento Blazor
+
+### Estrutura de Componentes
+- Sempre usar `@page` para páginas roteáveis
+- Implementar `IDisposable` quando necessário para limpeza de recursos
+- Usar `@inject` para injeção de dependências
+- Preferir `@code` no final do componente para lógica C#
+
+### Exemplo de Estrutura de Página
+```razor
+@page "/gerenciamento-funcionarios"
+@using Models
+@inject CandidatoService CandidatoService
+@inject IJSRuntime JSRuntime
+
+<PageTitle>Gerenciamento de Funcionários</PageTitle>
+
+<div class="container mx-auto p-4">
+    <!-- Conteúdo da página -->
+</div>
+
+@code {
+    // Propriedades e métodos
+}
+```
+
+### Binding e Eventos
+- Usar `@bind` para two-way binding
+- Usar `@onclick` para eventos de clique
+- Implementar `async` para operações assíncronas
+- Usar `StateHasChanged()` quando necessário para forçar re-render
+
+### Services Pattern
+- Todos os serviços devem herdar de uma interface
+- Implementar métodos assíncronos com `async/await`
+- Usar injeção de dependência via `Program.cs`
+- Gerenciar transações de banco de dados adequadamente
+
+## Padrões de CSS com Tailwind
+
+### Classes Responsivas
+```html
+<!-- Mobile first approach -->
+<div class="w-full md:w-1/2 lg:w-1/3">
+    <!-- Conteúdo -->
+</div>
+```
+
+### Componentes de Formulário
+```html
+<!-- Input padrão -->
+<input class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" />
+
+<!-- Botão primário -->
+<button class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg transition-colors">
+    Salvar
+</button>
+```
+
+### Grid Layouts
+```html
+<!-- Grid responsivo para cards -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    <!-- Cards aqui -->
+</div>
+```
+
+## Tratamento de Dados
+
+### Entity Framework
+- Usar `async/await` para todas as operações de banco
+- Implementar try-catch adequado
+- Usar `ConfigureAwait(false)` quando apropriado
+- Definir relacionamentos adequadamente nos modelos
+
+### Validação
+- Usar DataAnnotations nos modelos
+- Implementar validação client-side com Blazor
+- Mostrar mensagens de erro apropriadas
+- Validar dados antes de persistir
+
+## Estrutura de Toasts e Notificações
+
+### Usando ToastService 
+```csharp
+// Injetar o serviço
+@inject ToastService ToastService
+
+// Usar em métodos
+await ToastService.ShowToast("Sucesso!", "Funcionário cadastrado com sucesso", ToastType.Success);
+```
+
+### Tipos de Toast
+- `Success`: Operações concluídas com sucesso
+- `Error`: Erros e falhas
+- `Warning`: Avisos importantes
+- `Info`: Informações gerais
+
+## Padrões de Nomenclatura
+
+### Arquivos e Classes
+- **Páginas**: `GerenciamentoFuncionarios.razor`
+- **Componentes**: `FuncionarioCard.razor`
+- **Serviços**: `FuncionarioService.cs`
+- **Modelos**: `Funcionario.cs`
+
+### Métodos e Propriedades
+- **CRUD**: `CriarFuncionario()`, `ObterFuncionarios()`, `AtualizarFuncionario()`, `DeletarFuncionario()`
+- **Eventos**: `OnFuncionarioSalvo()`, `OnFuncionarioExcluido()`
+- **Propriedades**: `FuncionarioSelecionado`, `ListaFuncionarios`
+
+## Gerenciamento de Estado
+
+### State Management
+- Usar serviços singleton para estado global
+- Implementar events para comunicação entre componentes
+- Usar `StateHasChanged()` apropriadamente
+- Gerenciar loading states
+
+### Exemplo de State Service
+```csharp
+public class AppStateService
+{
+    public event Action OnChange;
+    
+    private bool _isLoading;
+    public bool IsLoading 
+    { 
+        get => _isLoading; 
+        set 
+        { 
+            _isLoading = value; 
+            OnChange?.Invoke(); 
+        } 
+    }
+}
+```
+
+## Segurança e Autenticação
+
+### Proteção de Rotas
+- Usar `@attribute [Authorize]` em páginas protegidas
+- Implementar roles para diferentes níveis de acesso
+- Validar permissões no backend
+
+### Sanitização de Dados
+- Sempre validar inputs do usuário
+- Usar parâmetros SQL para evitar injection
+- Escapar HTML quando necessário
+
+## Performance
+
+### Otimizações
+- Usar `@key` em loops para performance
+- Implementar lazy loading quando apropriado
+- Minimizar re-renders desnecessários
+- Usar `ShouldRender()` quando necessário
+
+### Caching
+- Implementar cache de dados frequentemente acessados
+- Usar `MemoryCache` para dados temporários
+- Considerar cache de componentes pesados
+
+## Tratamento de Erros
+
+### Global Error Handling
+- Implementar ErrorBoundary components
+- Logar erros apropriadamente
+- Mostrar mensagens amigáveis ao usuário
+- Implementar fallbacks para falhas
+
+### Exemplo de Try-Catch
+```csharp
+try
+{
+    await FuncionarioService.CriarFuncionario(funcionario);
+    await ToastService.ShowToast("Sucesso!", "Funcionário criado com sucesso", ToastType.Success);
+}
+catch (Exception ex)
+{
+    await ToastService.ShowToast("Erro!", "Erro ao criar funcionário", ToastType.Error);
+    // Log do erro
+}
+```
+

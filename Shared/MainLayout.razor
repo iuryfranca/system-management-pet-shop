@@ -1,0 +1,23 @@
+﻿@inherits LayoutComponentBase
+@using AppConcurso.Services
+
+
+<div class="@SideMenuService.BodyCssClass">
+   <div>
+      <NavMenu />
+   </div>
+   <div class="min-h-screen sm:p-8 p-4 w-full">@Body</div>
+   <Toast />
+</div>
+
+
+@code {
+   [Inject]
+   public SideMenuService SideMenuService { get; set; }
+
+   protected override void OnInitialized()
+   {
+      SideMenuService.OnChange += StateHasChanged;
+      StateHasChanged();
+   }
+}
