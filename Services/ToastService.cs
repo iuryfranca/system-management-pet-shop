@@ -1,6 +1,6 @@
 using System.Timers;
 
-namespace AppConcurso.Services
+namespace SystemManagementPetshop.Services
 {
     public enum ToastType
     {

@@ -1,8 +1,8 @@
-using AppConcurso.Context;
-using AppConcurso.Models;
+using SystemManagementPetshop.Context;
+using SystemManagementPetshop.Models;
 using Microsoft.EntityFrameworkCore;
 
-namespace AppConcurso.Services;
+namespace SystemManagementPetshop.Services;
 
 public class CandidatoService
 {

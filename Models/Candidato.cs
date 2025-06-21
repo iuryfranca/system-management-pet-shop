@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace AppConcurso.Models;
+namespace SystemManagementPetshop.Models;
 
 [Table("candidato", Schema = "public")]
 public class Candidato

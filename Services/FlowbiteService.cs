@@ -1,6 +1,6 @@
 using Microsoft.JSInterop;
 
-namespace AppConcurso.Services;
+namespace SystemManagementPetshop.Services;
 
 public interface IFlowbiteService
 {

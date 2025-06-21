@@ -7,7 +7,7 @@
       "type": "process",
       "args": [
         "build",
-        "${workspaceFolder}/AppConcurso.sln",
+        "${workspaceFolder}/SystemManagementPetshop.sln",
         "/property:GenerateFullPaths=true",
         "/consoleloggerparameters:NoSummary;ForceNoAlign"
       ],
@@ -19,7 +19,7 @@
       "type": "process",
       "args": [
         "publish",
-        "${workspaceFolder}/AppConcurso.sln",
+        "${workspaceFolder}/SystemManagementPetshop.sln",
         "/property:GenerateFullPaths=true",
         "/consoleloggerparameters:NoSummary;ForceNoAlign"
       ],
@@ -33,7 +33,7 @@
         "watch",
         "run",
         "--project",
-        "${workspaceFolder}/AppConcurso.sln"
+        "${workspaceFolder}/SystemManagementPetshop.sln"
       ],
       "problemMatcher": "$msCompile"
     }

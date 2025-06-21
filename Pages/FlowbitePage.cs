@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Components;
-using AppConcurso.Services;
+using SystemManagementPetshop.Services;
 
-namespace AppConcurso.Pages;
+namespace SystemManagementPetshop.Pages;
 
 public abstract class FlowbitePage : ComponentBase
 {

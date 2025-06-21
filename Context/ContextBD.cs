@@ -1,7 +1,7 @@
-using AppConcurso.Models;
+using SystemManagementPetshop.Models;
 using Microsoft.EntityFrameworkCore;
 
-namespace AppConcurso.Context;
+namespace SystemManagementPetshop.Context;
 
 public class ContextDB : DbContext
 {

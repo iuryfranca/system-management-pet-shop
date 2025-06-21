@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace AppConcurso.Models;
+namespace SystemManagementPetshop.Models;
 
 [Table("cargo", Schema = "public")]
 public class Cargo

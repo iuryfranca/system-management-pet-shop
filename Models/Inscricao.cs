@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace AppConcurso.Models;
+namespace SystemManagementPetshop.Models;
 
 [Table("inscricao", Schema = "public")]
 public class Inscricao
@@ -26,7 +26,7 @@ public class Inscricao
     [Column("cargo_id")]
     public int CargoId { get; set; }
 
-    // public Candidato Candidato { get; set; }
+    public Candidato? Candidato { get; set; }
 
-    // public Cargo Cargo { get; set; }
+    public Cargo? Cargo { get; set; }
 }

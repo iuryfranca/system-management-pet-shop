@@ -1,5 +1,5 @@
-using AppConcurso.Context;
-using AppConcurso.Services;
+using SystemManagementPetshop.Context;
+using SystemManagementPetshop.Services;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);

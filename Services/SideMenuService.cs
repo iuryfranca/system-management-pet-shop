@@ -1,5 +1,5 @@
 
-namespace AppConcurso.Services
+namespace SystemManagementPetshop.Services
 {
     public class SideMenuService : IDisposable
     {
