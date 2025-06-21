@@ -8,6 +8,7 @@ builder.Services.AddRazorPages();
 builder.Services.AddServerSideBlazor();
 
 builder.Services.AddScoped<AnimalService>();
+builder.Services.AddScoped<FuncionarioService>();
 builder.Services.AddScoped<ProdutoService>();
 builder.Services.AddScoped<ServicoService>();
 builder.Services.AddScoped<ServicoProdutoService>();

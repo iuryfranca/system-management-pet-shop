@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace SystemManagementPetshop.Models;
@@ -5,10 +6,10 @@ namespace SystemManagementPetshop.Models;
 [Table("servico_produto", Schema = "public")]
 public class ServicoProduto
 {
-    [Column("id_servico_fk")]
+    [Key, Column("id_servico_fk", Order = 0)]
     public int ServicoId { get; set; }
 
-    [Column("id_produto_fk")]
+    [Key, Column("id_produto_fk", Order = 1)]
     public int ProdutoId { get; set; }
 
     [Column("quantidade")]
@@ -20,4 +21,4 @@ public class ServicoProduto
     public Servico? Servico { get; set; }
 
     public Produto? Produto { get; set; }
-} 
+}

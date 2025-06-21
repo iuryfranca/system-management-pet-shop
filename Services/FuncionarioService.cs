@@ -32,6 +32,9 @@ public class FuncionarioService
 
     public async Task<Funcionario>? CreateFuncionario(Funcionario funcionario)
     {
+
+        _context.ChangeTracker.Clear();
+
         await _context.Funcionarios.AddAsync(funcionario);
         await _context.SaveChangesAsync();
         return funcionario;
@@ -60,7 +63,7 @@ public class FuncionarioService
         _context.ChangeTracker.Clear();
         _context.Funcionarios.Update(funcionario);
         await _context.SaveChangesAsync();
-        
+
         return funcionario;
     }
-} 
+}

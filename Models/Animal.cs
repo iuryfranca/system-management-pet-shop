@@ -6,10 +6,10 @@ public enum TipoAnimal
 {
     Cachorro,
     Gato,
-    Pássaro,
+    Passaro,
     Peixe,
     Roedor,
-    Réptil,
+    Reptil,
     Outro
 }
 
@@ -39,4 +39,4 @@ public class Animal
 
     [Column("dono_telefone")]
     public string? DonoTelefone { get; set; }
-} 
+}

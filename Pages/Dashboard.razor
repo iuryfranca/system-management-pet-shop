@@ -4,29 +4,34 @@
 @using SystemManagementPetshop.Services
 @using System.Text
 @inherits FlowbitePage
-@inject CargoService CargoService
-@inject CandidatoService CandidatoService
-@inject InscricaoService InscricaoService
+@inject AnimalService AnimalService
+@inject FuncionarioService FuncionarioService
+@inject ProdutoService ProdutoService
+@inject ServicoService ServicoService
 @inject ToastService ToastService
 
 <PageTitle>Dashboard</PageTitle>
 
 <div class="flex flex-col gap-4">
   <Header Title="Dashboard"
-    Description="Ver de forma fácil e rápida os dados do sistema em forma de gráficos. Interaja e analise os dados de forma simples e prática." />
+    Description="Visualize dados do sistema Pet Shop de forma fácil e rápida através de gráficos interativos. Analise informações sobre animais, produtos, funcionários e serviços." />
 
-  <div class="flex flex-row gap-4 mb-4">
-    <button @onclick="GerarCargosAleatorios"
+  <div class="flex flex-wrap gap-4 mb-4">
+    <button @onclick="GerarAnimaisAleatorios"
       class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">
-      Gerar Cargos Aleatórios
+      Gerar Animais Aleatórios
     </button>
-    <button @onclick="GerarCandidatosAleatorios"
+    <button @onclick="GerarFuncionariosAleatorios"
       class="text-white bg-green-700 hover:bg-green-800 focus:ring-4 focus:outline-none focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-green-600 dark:hover:bg-green-700 dark:focus:ring-green-800">
-      Gerar Candidatos Aleatórios
+      Gerar Funcionários Aleatórios
     </button>
-    <button @onclick="GerarInscricoesAleatorias"
+    <button @onclick="GerarProdutosAleatorios"
       class="text-white bg-purple-700 hover:bg-purple-800 focus:ring-4 focus:outline-none focus:ring-purple-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-purple-600 dark:hover:bg-purple-700 dark:focus:ring-purple-800">
-      Gerar Inscrições Aleatórias
+      Gerar Produtos Aleatórios
+    </button>
+    <button @onclick="GerarServicosAleatorios"
+      class="text-white bg-orange-700 hover:bg-orange-800 focus:ring-4 focus:outline-none focus:ring-orange-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-orange-600 dark:hover:bg-orange-700 dark:focus:ring-orange-800">
+      Gerar Serviços Aleatórios
     </button>
   </div>
 
@@ -34,33 +39,36 @@
     <div
       class="bg-white rounded-lg w-[600px] shadow-sm dark:bg-gray-800 p-4 md:p-6 border-2 border-gray-200 dark:border-gray-700">
       <h5 class="text-xl mb-4 font-bold leading-none text-gray-900 dark:text-white pe-1">
-        Candidatos Inscritos
+        Sistema Pet Shop
       </h5>
-      <div class="grid grid-cols-2">
+      <div class="grid grid-cols-2 gap-4">
         <dl class="flex items-center">
-          <dt class="text-gray-500 dark:text-gray-400 text-sm font-normal me-1">Candidatos Inscritos:</dt>
-          <dd class="text-gray-900 text-sm dark:text-white font-semibold">@Candidatos.Count</dd>
+          <dt class="text-gray-500 dark:text-gray-400 text-sm font-normal me-1">Animais:</dt>
+          <dd class="text-gray-900 text-sm dark:text-white font-semibold">@Animais.Count</dd>
         </dl>
         <dl class="flex items-center">
-          <dt class="text-gray-500 dark:text-gray-400 text-sm font-normal me-1">Cargos:</dt>
-          <dd class="text-gray-900 text-sm dark:text-white font-semibold">@Cargos.Count</dd>
+          <dt class="text-gray-500 dark:text-gray-400 text-sm font-normal me-1">Funcionários:</dt>
+          <dd class="text-gray-900 text-sm dark:text-white font-semibold">@Funcionarios.Count</dd>
         </dl>
         <dl class="flex items-center">
-          <dt class="text-gray-500 dark:text-gray-400 text-sm font-normal me-1">Inscrições:</dt>
-          <dd class="text-gray-900 text-sm dark:text-white font-semibold">@Inscricoes.Count</dd>
+          <dt class="text-gray-500 dark:text-gray-400 text-sm font-normal me-1">Produtos:</dt>
+          <dd class="text-gray-900 text-sm dark:text-white font-semibold">@Produtos.Count</dd>
+        </dl>
+        <dl class="flex items-center">
+          <dt class="text-gray-500 dark:text-gray-400 text-sm font-normal me-1">Serviços:</dt>
+          <dd class="text-gray-900 text-sm dark:text-white font-semibold">@Servicos.Count</dd>
         </dl>
       </div>
-      @if (Cargos.Count > 0 && Inscricoes.Count > 0)
+      @if (Produtos.Count > 0)
       {
         <div class="mb-4 mt-2">
-          <label for="selectCargoChart" class="block mb-1 text-sm font-medium text-gray-900 dark:text-white">Filtrar por
-            Cargo:</label>
-          <select id="selectCargoChart"
+          <label for="selectCategoriaChart" class="block mb-1 text-sm font-medium text-gray-900 dark:text-white">Filtrar por Categoria:</label>
+          <select id="selectCategoriaChart"
             class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500">
-            <option value="">Todos os cargos</option>
-            @for (int i = 0; i < Cargos.Count; i++)
+            <option value="">Todas as categorias</option>
+            @foreach (var categoria in Enum.GetValues<CategoriaProduto>())
             {
-              <option value="@i">@Cargos[i].NomeCargo</option>
+              <option value="@categoria">@categoria</option>
             }
           </select>
         </div>
@@ -79,11 +87,11 @@
       <div class="flex justify-between mb-3">
         <div class="flex justify-center items-center">
           <h5 class="text-xl font-bold leading-none text-gray-900 dark:text-white pe-1">
-            Cargos Inscritos
+            Animais por Tipo
           </h5>
         </div>
       </div>
-      @if (Cargos.Count > 0 && Inscricoes.Count > 0)
+      @if (Animais.Count > 0)
       {
         <!-- Donut Chart -->
         <div class="py-6" id="donut-chart"></div>
@@ -102,14 +110,14 @@
         <div class="flex-col items-center">
           <div class="flex items-center mb-1">
             <h5 class="text-xl font-bold leading-none text-gray-900 dark:text-white me-1">
-              Candidatos Inscritos
+              Serviços por Status
             </h5>
           </div>
         </div>
       </div>
-      @if (Cargos.Count > 0 && Inscricoes.Count > 0)
+      @if (Servicos.Count > 0)
       {
-        <!-- Line Chart -->
+        <!-- Pie Chart -->
         <div class="py-6" id="pie-chart"></div>
       }
       else
@@ -373,42 +381,62 @@
   [Inject]
   public IJSRuntime JSRuntime { get; set; }
 
-  public List<Cargo> Cargos { get; set; } = new();
-  public List<Candidato> Candidatos { get; set; } = new();
-  public List<Inscricao> Inscricoes { get; set; } = new();
+  public List<Animal> Animais { get; set; } = new();
+  public List<Funcionario> Funcionarios { get; set; } = new();
+  public List<Produto> Produtos { get; set; } = new();
+  public List<Servico> Servicos { get; set; } = new();
 
-  public Dictionary<string, int> InscricoesPorCargo =>
-  Inscricoes.Count > 0 ?
-  Inscricoes
-  .GroupBy(i => i.CargoId)
+  public Dictionary<string, int> ProdutosPorCategoria =>
+  Produtos.Count > 0 ?
+  Produtos
+  .GroupBy(p => p.Categoria)
   .ToDictionary(
-  g => Cargos.FirstOrDefault(c => c.Id == g.Key)?.NomeCargo ?? "Desconhecido",
+  g => g.Key.ToString(),
   g => g.Count()
   ) : new Dictionary<string, int>();
 
-  public string[] DonutLabels => InscricoesPorCargo.Keys.ToArray();
-  public int[] DonutSeries => InscricoesPorCargo.Values.ToArray();
+  public Dictionary<string, int> AnimaisPorTipo =>
+  Animais.Count > 0 ?
+  Animais
+  .GroupBy(a => a.TipoAni)
+  .ToDictionary(
+  g => g.Key.ToString(),
+  g => g.Count()
+  ) : new Dictionary<string, int>();
 
-  public string[] PieLabels => InscricoesPorCargo.Keys.ToArray();
-  public int[] PieSeries => InscricoesPorCargo.Values.ToArray();
+  public Dictionary<string, int> ServicosPorStatus =>
+  Servicos.Count > 0 ?
+  Servicos
+  .GroupBy(s => s.Status)
+  .ToDictionary(
+  g => g.Key.ToString(),
+  g => g.Count()
+  ) : new Dictionary<string, int>();
+
+  public string[] DonutLabels => AnimaisPorTipo.Keys.ToArray();
+  public int[] DonutSeries => AnimaisPorTipo.Values.ToArray();
+
+  public string[] PieLabels => ServicosPorStatus.Keys.ToArray();
+  public int[] PieSeries => ServicosPorStatus.Values.ToArray();
 
   private Random random = new Random();
 
   protected override async Task OnInitializedAsync()
   {
-    Cargos = await CargoService.GetCargos();
-    Candidatos = await CandidatoService.GetCandidatos();
-    Inscricoes = await InscricaoService.GetInscricoes();
+    Animais = await AnimalService.GetAnimais();
+    Funcionarios = await FuncionarioService.GetFuncionarios();
+    Produtos = await ProdutoService.GetProdutos();
+    Servicos = await ServicoService.GetServicos();
   }
 
   protected override async Task OnAfterRenderAsync(bool firstRender)
   {
     await JSRuntime.InvokeVoidAsync("initDataCharts",
-    Candidatos.Count,
-    Cargos.Count,
-    Inscricoes.Count,
-    Cargos.Select(c => c.NomeCargo).ToArray(),
-    InscricoesPorCargo.Values.ToArray(),
+    Animais.Count,
+    Funcionarios.Count,
+    Produtos.Count,
+    ProdutosPorCategoria.Keys.ToArray(),
+    ProdutosPorCategoria.Values.ToArray(),
     DonutLabels,
     DonutSeries,
     PieLabels,
@@ -416,151 +444,185 @@
     );
   }
 
-  private async Task GerarCargosAleatorios()
+  private async Task GerarAnimaisAleatorios()
   {
     try
     {
-      int quantidadeCargos = random.Next(3, 8);
-      string[] nomesCargos = { "Desenvolvedor", "Analista", "Gerente", "Coordenador", "Diretor", "Técnico", "Engenheiro",
-"Administrador", "Contador", "Advogado" };
-      string[] editais = { "001/2023", "002/2023", "003/2023", "004/2023", "005/2023", "006/2023", "007/2023" };
+      int quantidadeAnimais = random.Next(5, 12);
+      string[] nomesAnimais = { "Rex", "Bella", "Max", "Luna", "Charlie", "Lucy", "Rocky", "Molly", "Buddy", "Daisy",
+"Zeus", "Lola", "Duke", "Mia", "Bear", "Sophie", "Tucker", "Chloe", "Oliver" };
+      string[] nomesDonosAnimais = { "João Silva", "Maria Santos", "Pedro Oliveira", "Ana Costa", "Carlos Pereira", 
+"Juliana Lima", "Fernando Souza", "Mariana Almeida", "Ricardo Gomes", "Camila Ferreira" };
+      string[] racas = { "Labrador", "Golden Retriever", "Bulldog", "Poodle", "Pastor Alemão", "Beagle", "Rottweiler", 
+"Yorkshire", "Shih Tzu", "Maltês", "Siamês", "Ragdoll", "Maine Coon", "Canário", "Periquito" };
 
-      for (int i = 0; i < quantidadeCargos; i++)
+      var tiposAnimais = Enum.GetValues<TipoAnimal>();
+
+      for (int i = 0; i < quantidadeAnimais; i++)
       {
-        var cargo = new Cargo
+        var animal = new Animal
         {
-          NomeCargo = $"{nomesCargos[random.Next(nomesCargos.Length)]} {random.Next(1, 5)}",
-          Edital = editais[random.Next(editais.Length)],
-          SalarioBase = Math.Round(random.Next(1500, 10000) + random.NextDouble(), 2)
+          NomeAni = nomesAnimais[random.Next(nomesAnimais.Length)],
+          TipoAni = tiposAnimais[random.Next(tiposAnimais.Length)],
+          RacaAni = racas[random.Next(racas.Length)],
+          IdadeAni = random.Next(1, 15),
+          PesoAni = Math.Round(random.NextDouble() * 30 + 1, 2),
+          DonoNome = nomesDonosAnimais[random.Next(nomesDonosAnimais.Length)],
+          DonoTelefone = $"11{random.Next(100000000, 999999999)}"
         };
 
-        await CargoService.CreateCargo(cargo);
+        await AnimalService.CreateAnimal(animal);
       }
 
-      Cargos = await CargoService.GetCargos();
-      ToastService.ShowSuccess($"{quantidadeCargos} cargos aleatórios criados com sucesso!");
+      Animais = await AnimalService.GetAnimais();
+      ToastService.ShowSuccess($"{quantidadeAnimais} animais aleatórios criados com sucesso!");
 
-      await JSRuntime.InvokeVoidAsync("initDataCharts",
-      Candidatos.Count,
-      Cargos.Count,
-      Inscricoes.Count,
-      Cargos.Select(c => c.NomeCargo).ToArray(),
-      InscricoesPorCargo.Values.ToArray(),
-      DonutLabels,
-      DonutSeries,
-      PieLabels,
-      PieSeries
-      );
-
+      await AtualizarGraficos();
       StateHasChanged();
     }
     catch (Exception ex)
     {
-      ToastService.ShowError($"Erro ao gerar cargos aleatórios: {ex.Message}");
+      ToastService.ShowError($"Erro ao gerar animais aleatórios: {ex.Message}");
     }
   }
 
-  private async Task GerarCandidatosAleatorios()
+  private async Task GerarFuncionariosAleatorios()
   {
     try
     {
-      int quantidadeCandidatos = random.Next(5, 15);
+      int quantidadeFuncionarios = random.Next(3, 8);
       string[] nomes = { "João", "Maria", "Pedro", "Ana", "Carlos", "Juliana", "Fernando", "Mariana", "Ricardo", "Camila",
 "Lucas", "Larissa", "Gabriel", "Bianca", "Rafael" };
       string[] sobrenomes = { "Silva", "Santos", "Oliveira", "Souza", "Pereira", "Lima", "Costa", "Rodrigues", "Ferreira",
 "Almeida", "Carvalho", "Gomes", "Martins", "Araújo", "Melo" };
+      string[] cargos = { "Veterinário", "Atendente", "Groomer", "Auxiliar Veterinário", "Gerente", "Recepcionista", 
+"Técnico em Veterinária", "Cuidador de Animais" };
 
-      for (int i = 0; i < quantidadeCandidatos; i++)
+      for (int i = 0; i < quantidadeFuncionarios; i++)
       {
         string nome = $"{nomes[random.Next(nomes.Length)]} {sobrenomes[random.Next(sobrenomes.Length)]}";
+        string cargo = cargos[random.Next(cargos.Length)];
 
-        StringBuilder cpf = new StringBuilder();
-        for (int j = 0; j < 11; j++)
+        var funcionario = new Funcionario
         {
-          cpf.Append(random.Next(0, 10));
-        }
-
-        DateTime dataNascimento = DateTime.Now.AddYears(-random.Next(18, 60)).AddDays(-random.Next(1, 365));
-
-        var candidato = new Candidato
-        {
-          Nome = nome,
-          Cpf = cpf.ToString(),
-          DataNascimento = dataNascimento
+          NomeFunc = nome,
+          CargoFunc = cargo,
+          EmailFunc = $"{nome.Replace(" ", ".").ToLower()}@petshop.com",
+          TelefoneFunc = $"11{random.Next(100000000, 999999999)}",
+          SenhaFunc = "123456" // Senha padrão para funcionários demo
         };
 
-        await CandidatoService.CreateCandidato(candidato);
+        await FuncionarioService.CreateFuncionario(funcionario);
       }
 
-      Candidatos = await CandidatoService.GetCandidatos();
-      ToastService.ShowSuccess($"{quantidadeCandidatos} candidatos aleatórios criados com sucesso!");
+      Funcionarios = await FuncionarioService.GetFuncionarios();
+      ToastService.ShowSuccess($"{quantidadeFuncionarios} funcionários aleatórios criados com sucesso!");
 
+      await AtualizarGraficos();
       StateHasChanged();
     }
     catch (Exception ex)
     {
-      ToastService.ShowError($"Erro ao gerar candidatos aleatórios: {ex.Message}");
+      ToastService.ShowError($"Erro ao gerar funcionários aleatórios: {ex.Message}");
     }
   }
 
-  private async Task GerarInscricoesAleatorias()
+  private async Task GerarProdutosAleatorios()
   {
     try
     {
-      if (Cargos.Count == 0 || Candidatos.Count == 0)
+      int quantidadeProdutos = random.Next(8, 20);
+      string[] nomesProdutos = { "Ração Premium", "Shampoo Canino", "Brinquedo Mordedor", "Coleira Ajustável", 
+"Petisco Natural", "Areia Sanitária", "Cama Pet", "Comedouro Automático", "Escova de Pelo", "Medicamento Antiparasitário",
+"Biscoito para Cães", "Arranhador para Gatos", "Guia Retrátil", "Vitamina Pet", "Bolinha de Tênis" };
+      string[] marcasProdutos = { "PetLove", "Royal Canin", "Pedigree", "Whiskas", "Hill's", "Premier Pet", "Golden", 
+"Biofresh", "Mundo Animal", "Ferplast" };
+
+      var categorias = Enum.GetValues<CategoriaProduto>();
+
+      for (int i = 0; i < quantidadeProdutos; i++)
       {
-        ToastService.ShowError("É necessário ter cargos e candidatos cadastrados para gerar inscrições!");
-        return;
-      }
-
-      int quantidadeInscricoes = Math.Min(Candidatos.Count * 2, 20);
-
-      for (int i = 0; i < quantidadeInscricoes; i++)
-      {
-        int candidatoId = Candidatos[random.Next(Candidatos.Count)].Id ?? 0;
-        int cargoId = Cargos[random.Next(Cargos.Count)].Id;
-
-        bool inscricaoExistente = Inscricoes.Any(insc => insc.CandidatoId == candidatoId && insc.CargoId == cargoId);
-
-        if (!inscricaoExistente)
+        var produto = new Produto
         {
-          double notaGerais = Math.Round(random.NextDouble() * 10, 2);
-          double notaEspecificos = Math.Round(random.NextDouble() * 10, 2);
+          NomeProd = nomesProdutos[random.Next(nomesProdutos.Length)],
+          MarcaProd = marcasProdutos[random.Next(marcasProdutos.Length)],
+          ValorProd = (decimal)Math.Round(random.NextDouble() * 200 + 10, 2),
+          Estoque = random.Next(0, 100),
+          Categoria = categorias[random.Next(categorias.Length)]
+        };
 
-          var inscricao = new Inscricao
-          {
-            CandidatoId = candidatoId,
-            CargoId = cargoId,
-            DataInscricao = DateTime.Now.AddDays(-random.Next(1, 30)),
-            NotaConhGerais = notaGerais,
-            NotaConhEspecificos = notaEspecificos,
-            NumeroInsc = $"INSC{DateTime.Now.Ticks.ToString().Substring(10)}"
-          };
-
-          await InscricaoService.CreateInscricao(inscricao);
-        }
+        await ProdutoService.CreateProduto(produto);
       }
 
-      Inscricoes = await InscricaoService.GetInscricoes();
-      ToastService.ShowSuccess("Inscrições aleatórias criadas com sucesso!");
+      Produtos = await ProdutoService.GetProdutos();
+      ToastService.ShowSuccess($"{quantidadeProdutos} produtos aleatórios criados com sucesso!");
 
-      await JSRuntime.InvokeVoidAsync("initDataCharts",
-      Candidatos.Count,
-      Cargos.Count,
-      Inscricoes.Count,
-      Cargos.Select(c => c.NomeCargo).ToArray(),
-      InscricoesPorCargo.Values.ToArray(),
-      DonutLabels,
-      DonutSeries,
-      PieLabels,
-      PieSeries
-      );
-
+      await AtualizarGraficos();
       StateHasChanged();
     }
     catch (Exception ex)
     {
-      ToastService.ShowError($"Erro ao gerar inscrições aleatórias: {ex.Message}");
+      ToastService.ShowError($"Erro ao gerar produtos aleatórios: {ex.Message}");
     }
+  }
+
+  private async Task GerarServicosAleatorios()
+  {
+    try
+    {
+      if (Funcionarios.Count == 0 || Animais.Count == 0)
+      {
+        ToastService.ShowError("É necessário ter funcionários e animais cadastrados para gerar serviços!");
+        return;
+      }
+
+      int quantidadeServicos = random.Next(5, 15);
+      string[] nomesServicos = { "Consulta Veterinária", "Vacinação", "Banho e Tosa", "Cirurgia", "Exame de Sangue", 
+"Castração", "Limpeza Dental", "Tratamento Dermatológico", "Medicação", "Check-up Geral" };
+
+      var statusServicos = Enum.GetValues<StatusServico>();
+
+      for (int i = 0; i < quantidadeServicos; i++)
+      {
+        var servico = new Servico
+        {
+          NomeServ = nomesServicos[random.Next(nomesServicos.Length)],
+          DescricaoServ = "Serviço gerado automaticamente para demonstração",
+          DuracaoServ = TimeSpan.FromMinutes(random.Next(30, 180)),
+          ValorServ = (decimal)Math.Round(random.NextDouble() * 300 + 50, 2),
+          FuncionarioId = Funcionarios[random.Next(Funcionarios.Count)].Id,
+          AnimalId = Animais[random.Next(Animais.Count)].Id,
+          DataServico = DateTime.Now.AddDays(-random.Next(0, 30)).AddHours(random.Next(8, 18)),
+          Status = statusServicos[random.Next(statusServicos.Length)]
+        };
+
+        await ServicoService.CreateServico(servico);
+      }
+
+      Servicos = await ServicoService.GetServicos();
+      ToastService.ShowSuccess($"{quantidadeServicos} serviços aleatórios criados com sucesso!");
+
+      await AtualizarGraficos();
+      StateHasChanged();
+    }
+    catch (Exception ex)
+    {
+      ToastService.ShowError($"Erro ao gerar serviços aleatórios: {ex.Message}");
+    }
+  }
+
+  private async Task AtualizarGraficos()
+  {
+    await JSRuntime.InvokeVoidAsync("initDataCharts",
+    Animais.Count,
+    Funcionarios.Count,
+    Produtos.Count,
+    ProdutosPorCategoria.Keys.ToArray(),
+    ProdutosPorCategoria.Values.ToArray(),
+    DonutLabels,
+    DonutSeries,
+    PieLabels,
+    PieSeries
+    );
   }
 }

@@ -36,6 +36,9 @@ public class AnimalService
 
     public async Task<Animal>? CreateAnimal(Animal animal)
     {
+
+        _context.ChangeTracker.Clear();
+
         await _context.Animais.AddAsync(animal);
         await _context.SaveChangesAsync();
         return animal;
@@ -64,7 +67,7 @@ public class AnimalService
         _context.ChangeTracker.Clear();
         _context.Animais.Update(animal);
         await _context.SaveChangesAsync();
-        
+
         return animal;
     }
-} 
+}

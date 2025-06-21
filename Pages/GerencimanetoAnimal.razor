@@ -1,18 +1,19 @@
-@page "/registro-cargo"
+@page "/gerencimaneto-animal"
 @using SystemManagementPetshop.Models
 @using SystemManagementPetshop.Services
 @using Microsoft.AspNetCore.Components.Forms
 @using Microsoft.JSInterop
-@inject CargoService CargoService
+@using BlazorInputMask
+@inject AnimalService AnimalService
 @inject NavigationManager NavigationManager
 @inject ToastService ToastService
 @inject IJSRuntime JS
 
-<PageTitle>Registro de Cargo</PageTitle>
+<PageTitle>Registro de Animal</PageTitle>
 
 <div class="flex flex-col gap-4">
-  <Header Title="Registro de Cargo"
-    Description="Cadastre novos cargos para o concurso, incluindo nome, edital e salário base." />
+  <Header Title="Registro de Animal"
+    Description="Cadastre e gerencie animais do pet shop, incluindo dados dos donos e informações veterinárias." />
 
   <div class="flex flex-row gap-8 w-full">
     <div class="bg-gray-50 dark:bg-gray-800 rounded-lg w-full shadow-sm border-2 border-gray-200 dark:border-gray-700">
@@ -22,17 +23,19 @@
           <div class="relative z-0 w-full group">
             <input @bind="filtroTexto" @bind:event="oninput" @onkeyup="AplicarFiltro"
               class="block py-2.5 px-0 w-full text-sm text-gray-900 bg-transparent border-0 border-b-2 border-gray-300 appearance-none dark:text-white dark:border-gray-600 dark:focus:border-blue-500 focus:outline-none focus:ring-0 focus:border-blue-600 peer"
-              placeholder="Buscar por cargo ou edital" />
+              placeholder="Buscar por nome do animal ou dono" />
           </div>
         </div>
         <div class="flex flex-col gap-2 min-w-56">
-          <label for="countries" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Ordenação</label>
-          <select id="countries" @bind="tipoOrdenacao" @bind:after="AplicarFiltro"
+          <label for="ordenacao" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Ordenação</label>
+          <select id="ordenacao" @bind="tipoOrdenacao" @bind:after="AplicarFiltro"
             class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500">
             <option selected value="nome_asc">Nome (A-Z)</option>
             <option value="nome_desc">Nome (Z-A)</option>
-            <option value="salario_asc">Salário (Menor-Maior)</option>
-            <option value="salario_desc">Salário (Maior-Menor)</option>
+            <option value="tipo_asc">Tipo (A-Z)</option>
+            <option value="tipo_desc">Tipo (Z-A)</option>
+            <option value="idade_asc">Idade (Menor-Maior)</option>
+            <option value="idade_desc">Idade (Maior-Menor)</option>
           </select>
         </div>
         <div class="flex items-end w-44">
@@ -45,35 +48,47 @@
     </div>
     <button type="button" @onclick="ShowModal"
       class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm w-48 px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">Cadastrar
-      Cargo</button>
+      Animal</button>
   </div>
 
-  <h2 class="text-xl font-semibold mb-4 text-gray-800 dark:text-white">Cargos Cadastrados</h2>
-  <div class="grid grid-cols-[repeat(2,minmax(100px,1fr))] lg:grid-cols-[repeat(4,minmax(100px,1fr))] gap-4">
+  <h2 class="text-xl font-semibold mb-4 text-gray-800 dark:text-white">Animais Cadastrados</h2>
+  <div class="grid grid-cols-[repeat(1,minmax(100px,1fr))] lg:grid-cols-[repeat(2,minmax(100px,1fr))] gap-4">
 
-    @if (cargosListFiltrada != null && cargosListFiltrada.Any())
+    @if (animaisListFiltrada?.Any() == true)
     {
-      @foreach (var cargoItem in cargosListFiltrada)
+      @foreach (var animalItem in animaisListFiltrada)
       {
         <div
           class="bg-gray-50 dark:bg-gray-800 rounded-lg mb-4 shadow-sm border-2 border-gray-200 dark:border-gray-700 flex flex-col justify-between">
-          <div class="px-4 py-3 grid grid-cols-3 text-gray-700 dark:text-gray-300">
+          <div class="px-4 py-3 grid grid-cols-3 gap-4 text-gray-700 dark:text-gray-300">
             <div>
               <div class="font-bold">Nome</div>
-              <div>@cargoItem.NomeCargo</div>
+              <div>@animalItem.NomeAni</div>
             </div>
             <div>
-              <div class="font-bold">Edital</div>
-              <div>@cargoItem.Edital</div>
+              <div class="font-bold">Tipo</div>
+              <div>@animalItem.TipoAni</div>
             </div>
             <div>
-              <div class="font-bold">Salário Base</div>
-              <div>@cargoItem.SalarioBase.ToString("C")</div>
+              <div class="font-bold">Raça</div>
+              <div>@animalItem.RacaAni</div>
+            </div>
+            <div>
+              <div class="font-bold">Idade</div>
+              <div>@(animalItem.IdadeAni?.ToString() ?? "N/A")</div>
+            </div>
+            <div>
+              <div class="font-bold">Peso</div>
+              <div>@(animalItem.PesoAni?.ToString("F2") ?? "N/A") kg</div>
+            </div>
+            <div>
+              <div class="font-bold">Dono</div>
+              <div>@(animalItem.DonoNome ?? "N/A")</div>
             </div>
           </div>
 
           <div class="flex justify-center gap-6 py-3 px-4 bg-gray-200 dark:bg-gray-700 rounded-b-lg">
-            <button @onclick="() => EditarCargo(cargoItem)"
+            <button @onclick="() => EditarAnimal(animalItem)"
               class="inline-flex cursor-pointer items-center px-3 py-2 text-sm font-medium text-center text-white bg-blue-700 rounded-lg hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">
               <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"
                 xmlns="http://www.w3.org/2000/svg">
@@ -84,7 +99,7 @@
               Editar
             </button>
 
-            <button @onclick="() => ExcluirCargo(cargoItem.Id)"
+            <button @onclick="() => ExcluirAnimal(animalItem.Id)"
               class="inline-flex cursor-pointer items-center px-3 py-2 text-sm font-medium text-center text-white bg-red-700 rounded-lg hover:bg-red-800 focus:ring-4 focus:outline-none focus:ring-red-300 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-800">
               <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"
                 xmlns="http://www.w3.org/2000/svg">
@@ -101,8 +116,8 @@
     else
     {
       <div
-        class="bg-white w-full col-span-4 dark:bg-gray-800 p-4 rounded-lg text-center text-gray-500 dark:text-gray-400 border-2 border-gray-200 dark:border-gray-700">
-        Nenhum cargo cadastrado
+        class="bg-white w-full col-span-2 dark:bg-gray-800 p-4 rounded-lg text-center text-gray-500 dark:text-gray-400 border-2 border-gray-200 dark:border-gray-700">
+        Nenhum animal cadastrado
       </div>
     }
   </div>
@@ -118,7 +133,7 @@
         <div
           class="flex items-center justify-between p-4 md:p-5 border-b rounded-t dark:border-gray-600 border-gray-200">
           <h3 class="text-xl font-semibold text-gray-900 dark:text-white">
-            @(modoEdicao ? "Editar Cargo" : "Registro de Cargo")
+            @(modoEdicao ? "Editar Animal" : "Registro de Animal")
           </h3>
           <button type="button" @onclick="CloseModal"
             class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white"
@@ -131,33 +146,78 @@
           </button>
         </div>
         <!-- Modal body -->
-        <EditForm Model="@cargo" OnValidSubmit="HandleValidSubmit" class="p-4">
+        <EditForm Model="@animal" OnValidSubmit="HandleValidSubmit" class="p-4">
           <DataAnnotationsValidator />
 
           <div class="relative z-0 w-full mb-5 group">
-            <input @bind="cargo.NomeCargo" id="floating_nome_cargo"
+            <input @bind="animal.NomeAni" id="floating_nome_animal"
               class="block py-2.5 px-0 w-full text-sm text-gray-900 bg-transparent border-0 border-b-2 border-gray-300 appearance-none dark:text-white dark:border-gray-600 dark:focus:border-blue-500 focus:outline-none focus:ring-0 focus:border-blue-600 peer"
               placeholder=" " required />
-            <label for="floating_nome_cargo"
+            <label for="floating_nome_animal"
               class="peer-focus:font-medium absolute text-sm text-gray-500 dark:text-gray-400 duration-300 transform -translate-y-6 scale-75 top-3 -z-10 origin-[0] peer-focus:start-0 rtl:peer-focus:translate-x-1/4 peer-focus:text-blue-600 peer-focus:dark:text-blue-500 peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-6">Nome
-              do Cargo</label>
+              do Animal</label>
           </div>
 
           <div class="relative z-0 w-full mb-5 group">
-            <input @bind="cargo.Edital" id="floating_edital"
-              class="block py-2.5 px-0 w-full text-sm text-gray-900 bg-transparent border-0 border-b-2 border-gray-300 appearance-none dark:text-white dark:border-gray-600 dark:focus:border-blue-500 focus:outline-none focus:ring-0 focus:border-blue-600 peer"
-              placeholder=" " required />
-            <label for="floating_edital"
-              class="peer-focus:font-medium absolute text-sm text-gray-500 dark:text-gray-400 duration-300 transform -translate-y-6 scale-75 top-3 -z-10 origin-[0] peer-focus:start-0 rtl:peer-focus:translate-x-1/4 peer-focus:text-blue-600 peer-focus:dark:text-blue-500 peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-6">Edital</label>
+            <label for="select_tipo" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Tipo de
+              Animal</label>
+            <select id="select_tipo" @bind="animal.TipoAni"
+              class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+              required>
+              <option value="Cachorro">Cachorro</option>
+              <option value="Gato">Gato</option>
+              <option value="Passaro">Pássaro</option>
+              <option value="Peixe">Peixe</option>
+              <option value="Roedor">Roedor</option>
+              <option value="Reptil">Réptil</option>
+              <option value="Outro">Outro</option>
+            </select>
           </div>
 
           <div class="relative z-0 w-full mb-5 group">
-            <input @bind="cargo.SalarioBase" type="number" step="0.01" id="floating_salario_base"
+            <input @bind="animal.RacaAni" id="floating_raca"
               class="block py-2.5 px-0 w-full text-sm text-gray-900 bg-transparent border-0 border-b-2 border-gray-300 appearance-none dark:text-white dark:border-gray-600 dark:focus:border-blue-500 focus:outline-none focus:ring-0 focus:border-blue-600 peer"
               placeholder=" " required />
-            <label for="floating_salario_base"
-              class="peer-focus:font-medium absolute text-sm text-gray-500 dark:text-gray-400 duration-300 transform -translate-y-6 scale-75 top-3 -z-10 origin-[0] peer-focus:start-0 rtl:peer-focus:translate-x-1/4 peer-focus:text-blue-600 peer-focus:dark:text-blue-500 peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-6">Salário
-              Base</label>
+            <label for="floating_raca"
+              class="peer-focus:font-medium absolute text-sm text-gray-500 dark:text-gray-400 duration-300 transform -translate-y-6 scale-75 top-3 -z-10 origin-[0] peer-focus:start-0 rtl:peer-focus:translate-x-1/4 peer-focus:text-blue-600 peer-focus:dark:text-blue-500 peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-6">Raça</label>
+          </div>
+
+          <div class="relative z-0 w-full mb-5 group">
+            <input @bind="animal.IdadeAni" type="number" id="floating_idade"
+              class="block py-2.5 px-0 w-full text-sm text-gray-900 bg-transparent border-0 border-b-2 border-gray-300 appearance-none dark:text-white dark:border-gray-600 dark:focus:border-blue-500 focus:outline-none focus:ring-0 focus:border-blue-600 peer"
+              placeholder=" " />
+            <label for="floating_idade"
+              class="peer-focus:font-medium absolute text-sm text-gray-500 dark:text-gray-400 duration-300 transform -translate-y-6 scale-75 top-3 -z-10 origin-[0] peer-focus:start-0 rtl:peer-focus:translate-x-1/4 peer-focus:text-blue-600 peer-focus:dark:text-blue-500 peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-6">Idade
+              (anos)</label>
+          </div>
+
+          <div class="relative z-0 w-full mb-5 group">
+            <input @bind="animal.PesoAni" type="number" step="0.1" id="floating_peso"
+              class="block py-2.5 px-0 w-full text-sm text-gray-900 bg-transparent border-0 border-b-2 border-gray-300 appearance-none dark:text-white dark:border-gray-600 dark:focus:border-blue-500 focus:outline-none focus:ring-0 focus:border-blue-600 peer"
+              placeholder=" " />
+            <label for="floating_peso"
+              class="peer-focus:font-medium absolute text-sm text-gray-500 dark:text-gray-400 duration-300 transform -translate-y-6 scale-75 top-3 -z-10 origin-[0] peer-focus:start-0 rtl:peer-focus:translate-x-1/4 peer-focus:text-blue-600 peer-focus:dark:text-blue-500 peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-6">Peso
+              (kg)</label>
+          </div>
+
+          <div class="relative z-0 w-full mb-5 group">
+            <input @bind="animal.DonoNome" id="floating_dono_nome"
+              class="block py-2.5 px-0 w-full text-sm text-gray-900 bg-transparent border-0 border-b-2 border-gray-300 appearance-none dark:text-white dark:border-gray-600 dark:focus:border-blue-500 focus:outline-none focus:ring-0 focus:border-blue-600 peer"
+              placeholder=" " />
+            <label for="floating_dono_nome"
+              class="peer-focus:font-medium absolute text-sm text-gray-500 dark:text-gray-400 duration-300 transform -translate-y-6 scale-75 top-3 -z-10 origin-[0] peer-focus:start-0 rtl:peer-focus:translate-x-1/4 peer-focus:text-blue-600 peer-focus:dark:text-blue-500 peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-6">Nome
+              do Dono</label>
+          </div>
+
+          <div class="relative z-0 w-full mb-5 group">
+            <InputMask name="telefone" id="floating_telefone" data-mask="(00) 0 0000-0000"
+              @bind-Value="animal.DonoTelefone"
+              class="block py-2.5 px-0 w-full text-sm text-gray-900 bg-transparent border-0 border-b-2 border-gray-300 appearance-none dark:text-white dark:border-gray-600 dark:focus:border-blue-500 focus:outline-none focus:ring-0 focus:border-blue-600 peer"
+              placeholder=" " required />
+
+            <label for="floating_dono_telefone"
+              class="peer-focus:font-medium absolute text-sm text-gray-500 dark:text-gray-400 duration-300 transform -translate-y-6 scale-75 top-3 -z-10 origin-[0] peer-focus:start-0 rtl:peer-focus:translate-x-1/4 peer-focus:text-blue-600 peer-focus:dark:text-blue-500 peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-6">Telefone
+              do Dono</label>
           </div>
 
           <!-- Modal footer -->
@@ -175,57 +235,63 @@
 </div>
 
 @code {
-  private Cargo cargo = new Cargo();
+  private Animal animal = new Animal();
   private string mensagem = string.Empty;
-  private List<Cargo> cargosList = new List<Cargo>();
-  private List<Cargo> cargosListFiltrada = new List<Cargo>();
+  private List<Animal> animaisList = new List<Animal>();
+  private List<Animal> animaisListFiltrada = new List<Animal>();
   private bool modoEdicao = false;
   private string filtroTexto = "";
   private string tipoOrdenacao = "nome_asc";
 
   protected override async Task OnInitializedAsync()
   {
-    await CarregarCargos();
+    await CarregarAnimais();
   }
 
-  private async Task CarregarCargos()
+  private async Task CarregarAnimais()
   {
     try
     {
-      cargosList = await CargoService.GetCargos();
+      animaisList = await AnimalService.GetAnimais();
       AplicarFiltro();
     }
     catch (Exception ex)
     {
-      ToastService.ShowError($"Erro ao carregar cargos: {ex.Message}");
+      ToastService.ShowError($"Erro ao carregar animais: {ex.Message}");
     }
   }
 
   private void AplicarFiltro()
   {
     var resultados = string.IsNullOrWhiteSpace(filtroTexto)
-    ? cargosList
-    : cargosList.Where(c =>
-    c.NomeCargo.Contains(filtroTexto, StringComparison.OrdinalIgnoreCase) ||
-    c.Edital.Contains(filtroTexto, StringComparison.OrdinalIgnoreCase)).ToList();
+    ? animaisList
+    : animaisList.Where(a =>
+    a.NomeAni.Contains(filtroTexto, StringComparison.OrdinalIgnoreCase) ||
+    (a.DonoNome != null && a.DonoNome.Contains(filtroTexto, StringComparison.OrdinalIgnoreCase))).ToList();
 
     switch (tipoOrdenacao)
     {
       case "nome_asc":
-        resultados = resultados.OrderBy(c => c.NomeCargo).ToList();
+        resultados = resultados.OrderBy(a => a.NomeAni).ToList();
         break;
       case "nome_desc":
-        resultados = resultados.OrderByDescending(c => c.NomeCargo).ToList();
+        resultados = resultados.OrderByDescending(a => a.NomeAni).ToList();
         break;
-      case "salario_asc":
-        resultados = resultados.OrderBy(c => c.SalarioBase).ToList();
+      case "tipo_asc":
+        resultados = resultados.OrderBy(a => a.TipoAni).ToList();
         break;
-      case "salario_desc":
-        resultados = resultados.OrderByDescending(c => c.SalarioBase).ToList();
+      case "tipo_desc":
+        resultados = resultados.OrderByDescending(a => a.TipoAni).ToList();
+        break;
+      case "idade_asc":
+        resultados = resultados.OrderBy(a => a.IdadeAni ?? 0).ToList();
+        break;
+      case "idade_desc":
+        resultados = resultados.OrderByDescending(a => a.IdadeAni ?? 0).ToList();
         break;
     }
 
-    cargosListFiltrada = resultados;
+    animaisListFiltrada = resultados;
   }
 
   private void LimparFiltros()
@@ -237,7 +303,7 @@
 
   private void LimparCampos()
   {
-    cargo = new Cargo();
+    animal = new Animal();
     modoEdicao = false;
   }
 
@@ -245,7 +311,6 @@
   {
     await JS.InvokeVoidAsync("flowbiteInterop.showModal", "default-modal");
   }
-
 
   private async Task CloseModal()
   {
@@ -257,20 +322,25 @@
   {
     try
     {
+      if (!string.IsNullOrEmpty(animal.DonoTelefone) && animal.DonoTelefone.Length > 11)
+      {
+        animal.DonoTelefone = animal.DonoTelefone.Substring(0, 11);
+      }
+
       if (modoEdicao)
       {
-        await CargoService.UpdateCargo(cargo);
-        ToastService.ShowSuccess("Cargo atualizado com sucesso!");
+        await AnimalService.UpdateAnimal(animal);
+        ToastService.ShowSuccess("Animal atualizado com sucesso!");
       }
       else
       {
-        await CargoService.CreateCargo(cargo);
-        ToastService.ShowSuccess("Cargo cadastrado com sucesso!");
+        await AnimalService.CreateAnimal(animal);
+        ToastService.ShowSuccess("Animal cadastrado com sucesso!");
       }
 
-      cargo = new Cargo();
+      animal = new Animal();
       modoEdicao = false;
-      await CarregarCargos();
+      await CarregarAnimais();
 
       // Fechar o modal após o sucesso
       await JS.InvokeVoidAsync("flowbiteInterop.closeModal", "default-modal");
@@ -284,38 +354,42 @@
       ? $"{ex.Message} - {ex.InnerException.Message}"
       : ex.Message;
 
-      ToastService.ShowError($"Erro ao {(modoEdicao ? "atualizar" : "cadastrar")} cargo: {mensagemErro}");
+      ToastService.ShowError($"Erro ao {(modoEdicao ? "atualizar" : "cadastrar")} animal: {mensagemErro}");
     }
   }
 
-  private void EditarCargo(Cargo cargoParaEditar)
+  private void EditarAnimal(Animal animalParaEditar)
   {
-    cargo = new Cargo
+    animal = new Animal
     {
-      Id = cargoParaEditar.Id,
-      NomeCargo = cargoParaEditar.NomeCargo,
-      Edital = cargoParaEditar.Edital,
-      SalarioBase = cargoParaEditar.SalarioBase
+      Id = animalParaEditar.Id,
+      NomeAni = animalParaEditar.NomeAni,
+      TipoAni = animalParaEditar.TipoAni,
+      RacaAni = animalParaEditar.RacaAni,
+      IdadeAni = animalParaEditar.IdadeAni,
+      PesoAni = animalParaEditar.PesoAni,
+      DonoNome = animalParaEditar.DonoNome,
+      DonoTelefone = animalParaEditar.DonoTelefone
     };
 
-    Console.WriteLine($"Editando cargo - ID: {cargo.Id}, Nome: {cargo.NomeCargo}");
+    Console.WriteLine($"Editando animal - ID: {animal.Id}, Nome: {animal.NomeAni}");
 
     modoEdicao = true;
 
     JS.InvokeVoidAsync("flowbiteInterop.showModal", "default-modal");
   }
 
-  private async Task ExcluirCargo(int id)
+  private async Task ExcluirAnimal(int id)
   {
     try
     {
-      await CargoService.DeleteCargo(id);
-      await CarregarCargos();
-      ToastService.ShowSuccess("Cargo excluído com sucesso!");
+      await AnimalService.DeleteAnimal(id);
+      await CarregarAnimais();
+      ToastService.ShowSuccess("Animal excluído com sucesso!");
     }
     catch (Exception ex)
     {
-      ToastService.ShowError($"Erro ao excluir cargo: {ex.Message}");
+      ToastService.ShowError($"Erro ao excluir animal: {ex.Message}");
     }
   }
 }

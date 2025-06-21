@@ -59,6 +59,9 @@ public class ServicoService
 
     public async Task<Servico>? CreateServico(Servico servico)
     {
+
+        _context.ChangeTracker.Clear();
+
         await _context.Servicos.AddAsync(servico);
         await _context.SaveChangesAsync();
         return servico;
@@ -87,7 +90,7 @@ public class ServicoService
         _context.ChangeTracker.Clear();
         _context.Servicos.Update(servico);
         await _context.SaveChangesAsync();
-        
+
         return servico;
     }
-} 
+}

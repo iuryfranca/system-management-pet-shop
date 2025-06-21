@@ -41,6 +41,9 @@ public class ProdutoService
 
     public async Task<Produto>? CreateProduto(Produto produto)
     {
+
+        _context.ChangeTracker.Clear();
+
         await _context.Produtos.AddAsync(produto);
         await _context.SaveChangesAsync();
         return produto;
@@ -69,7 +72,7 @@ public class ProdutoService
         _context.ChangeTracker.Clear();
         _context.Produtos.Update(produto);
         await _context.SaveChangesAsync();
-        
+
         return produto;
     }
-} 
+}

@@ -7,7 +7,7 @@ public enum CategoriaProduto
     Alimento,
     Medicamento,
     Higiene,
-    Acessório,
+    Acessorio,
     Outro
 }
 
@@ -31,4 +31,4 @@ public class Produto
 
     [Column("categoria")]
     public CategoriaProduto Categoria { get; set; }
-} 
+}

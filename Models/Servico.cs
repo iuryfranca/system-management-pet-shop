@@ -6,7 +6,7 @@ public enum StatusServico
 {
     Agendado,
     EmAndamento,
-    Concluído,
+    Concluido,
     Cancelado
 }
 
@@ -43,4 +43,4 @@ public class Servico
     public Funcionario? Funcionario { get; set; }
 
     public Animal? Animal { get; set; }
-} 
+}
