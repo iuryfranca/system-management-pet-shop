@@ -7,9 +7,11 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddRazorPages();
 builder.Services.AddServerSideBlazor();
 
-builder.Services.AddScoped<CargoService>();
-builder.Services.AddScoped<CandidatoService>();
-builder.Services.AddScoped<InscricaoService>();
+builder.Services.AddScoped<AnimalService>();
+builder.Services.AddScoped<ProdutoService>();
+builder.Services.AddScoped<ServicoService>();
+builder.Services.AddScoped<ServicoProdutoService>();
+
 builder.Services.AddScoped<SideMenuService>();
 builder.Services.AddScoped<IFlowbiteService, FlowbiteService>();
 builder.Services.AddScoped<ToastService>();
