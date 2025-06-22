@@ -17,13 +17,13 @@
     Description="Visualize dados do sistema Pet Shop de forma fácil e rápida através de gráficos interativos. Analise informações sobre animais, produtos, funcionários e serviços." />
 
   <div class="flex flex-wrap gap-4 mb-4">
-    <button @onclick="GerarAnimaisAleatorios"
-      class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">
-      Gerar Animais Aleatórios
-    </button>
     <button @onclick="GerarFuncionariosAleatorios"
       class="text-white bg-green-700 hover:bg-green-800 focus:ring-4 focus:outline-none focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-green-600 dark:hover:bg-green-700 dark:focus:ring-green-800">
       Gerar Funcionários Aleatórios
+    </button>
+    <button @onclick="GerarAnimaisAleatorios"
+      class="text-white bg-sky-700 hover:bg-sky-800 focus:ring-4 focus:outline-none focus:ring-sky-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-sky-600 dark:hover:bg-sky-700 dark:focus:ring-sky-800">
+      Gerar Animais Aleatórios
     </button>
     <button @onclick="GerarProdutosAleatorios"
       class="text-white bg-purple-700 hover:bg-purple-800 focus:ring-4 focus:outline-none focus:ring-purple-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-purple-600 dark:hover:bg-purple-700 dark:focus:ring-purple-800">
@@ -93,7 +93,6 @@
       </div>
       @if (Animais.Count > 0)
       {
-        <!-- Donut Chart -->
         <div class="py-6" id="donut-chart"></div>
       }
       else
@@ -117,7 +116,6 @@
       </div>
       @if (Servicos.Count > 0)
       {
-        <!-- Pie Chart -->
         <div class="py-6" id="pie-chart"></div>
       }
       else
@@ -275,7 +273,7 @@
                   total: {
                     showAlways: true,
                     show: true,
-                    label: "Total",
+                    label: "Total Animais",
                     fontFamily: "Inter, sans-serif",
                     formatter: function (w) {
                       const sum = w.globals.seriesTotals.reduce((a, b) => a + b, 0);

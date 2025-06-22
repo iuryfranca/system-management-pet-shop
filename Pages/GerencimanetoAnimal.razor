@@ -47,13 +47,12 @@
       </div>
     </div>
     <button type="button" @onclick="ShowModal"
-      class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm w-48 px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">Cadastrar
+      class="text-white bg-sky-700 hover:bg-sky-800 focus:ring-4 focus:outline-none focus:ring-sky-300 font-medium rounded-lg text-sm w-48 px-5 py-2.5 text-center dark:bg-sky-600 dark:hover:bg-sky-700 dark:focus:ring-sky-800">Cadastrar
       Animal</button>
   </div>
 
   <h2 class="text-xl font-semibold mb-4 text-gray-800 dark:text-white">Animais Cadastrados</h2>
-  <div class="grid grid-cols-[repeat(1,minmax(100px,1fr))] lg:grid-cols-[repeat(2,minmax(100px,1fr))] gap-4">
-
+  <div class="grid grid-cols-[repeat(2,minmax(350px,1fr))] 2xl:grid-cols-[repeat(3,minmax(350px,1fr))] gap-4">
     @if (animaisListFiltrada?.Any() == true)
     {
       @foreach (var animalItem in animaisListFiltrada)
@@ -89,7 +88,7 @@
 
           <div class="flex justify-center gap-6 py-3 px-4 bg-gray-200 dark:bg-gray-700 rounded-b-lg">
             <button @onclick="() => EditarAnimal(animalItem)"
-              class="inline-flex cursor-pointer items-center px-3 py-2 text-sm font-medium text-center text-white bg-blue-700 rounded-lg hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">
+              class="inline-flex cursor-pointer items-center px-3 py-2 text-sm font-medium text-center text-white bg-sky-700 rounded-lg hover:bg-sky-800 focus:ring-4 focus:outline-none focus:ring-sky-300 dark:bg-sky-600 dark:hover:bg-sky-700 dark:focus:ring-sky-800">
               <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"
                 xmlns="http://www.w3.org/2000/svg">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
