@@ -52,7 +52,40 @@
   <h2 class="text-xl font-semibold mb-4 text-gray-800 dark:text-white">Funcionários Cadastrados</h2>
 
   <div class="grid grid-cols-[repeat(2,minmax(350px,1fr))] 2xl:grid-cols-[repeat(3,minmax(350px,1fr))] gap-4">
-    @if (funcionariosList != null && funcionariosList.Any())
+    @if (isLoading)
+    {
+      @for (int i = 0; i < 9; i++)
+      {
+        <div role="status"
+          class="bg-gray-50 dark:bg-gray-800 rounded-lg shadow-sm border-2 border-gray-200 dark:border-gray-700 flex flex-col justify-between animate-pulse">
+          <div class="px-4 py-3 grid grid-cols-2 gap-4">
+            <div class="flex flex-col gap-2">
+              <div class="h-4 bg-gray-200 rounded-full dark:bg-gray-700 w-12 mb-2"></div>
+              <div class="h-3 bg-gray-200 rounded-full dark:bg-gray-700 w-24"></div>
+            </div>
+            <div class="flex flex-col gap-2">
+              <div class="h-4 bg-gray-200 rounded-full dark:bg-gray-700 w-12 mb-2"></div>
+              <div class="h-3 bg-gray-200 rounded-full dark:bg-gray-700 w-20"></div>
+            </div>
+            <div class="flex flex-col gap-2">
+              <div class="h-4 bg-gray-200 rounded-full dark:bg-gray-700 w-12 mb-2"></div>
+              <div class="h-3 bg-gray-200 rounded-full dark:bg-gray-700 w-32"></div>
+            </div>
+            <div class="flex flex-col gap-2">
+              <div class="h-4 bg-gray-200 rounded-full dark:bg-gray-700 w-16 mb-2"></div>
+              <div class="h-3 bg-gray-200 rounded-full dark:bg-gray-700 w-28"></div>
+            </div>
+          </div>
+
+          <div class="flex justify-center gap-6 py-3 px-4 bg-gray-200 dark:bg-gray-700 rounded-b-lg">
+            <div class="h-10 bg-gray-300 rounded-lg dark:bg-gray-600 w-20"></div>
+            <div class="h-10 bg-gray-300 rounded-lg dark:bg-gray-600 w-20"></div>
+          </div>
+          <span class="sr-only">Loading...</span>
+        </div>
+      }
+    }
+    else if (funcionariosList != null && funcionariosList.Any())
     {
       @foreach (var funcionario in funcionarios)
       {
@@ -194,6 +227,7 @@
   private bool modoEdicao = false;
   private string filtroTexto = "";
   private string tipoOrdenacao = "nome_asc";
+  private bool isLoading = true;
 
   protected override async Task OnInitializedAsync()
   {
@@ -204,17 +238,29 @@
   {
     try
     {
+      isLoading = true;
+      StateHasChanged();
+
+      await Task.Delay(1000);
+
       funcionariosList = await FuncionarioService.GetFuncionarios();
-      AplicarFiltro();
+      await AplicarFiltro();
     }
     catch (Exception ex)
     {
+      isLoading = false;
+      StateHasChanged();
       ToastService.ShowError($"Erro ao carregar funcionários: {ex.Message}");
     }
   }
 
-  private void AplicarFiltro()
+  private async Task AplicarFiltro()
   {
+    isLoading = true;
+    StateHasChanged();
+
+    await Task.Delay(1000);
+
     var resultados = string.IsNullOrWhiteSpace(filtroTexto)
     ? funcionariosList
     : funcionariosList.Where(f =>
@@ -239,6 +285,9 @@
     }
 
     funcionarios = resultados;
+
+    isLoading = false;
+    StateHasChanged();
   }
 
   private void LimparFiltros()
@@ -269,6 +318,8 @@
   {
     try
     {
+      await Task.Delay(1000);
+
       if (modoEdicao)
       {
         await FuncionarioService.UpdateFuncionario(funcionario);
@@ -314,6 +365,8 @@
   {
     try
     {
+      await Task.Delay(1000);
+
       await FuncionarioService.DeleteFuncionario(id);
       await CarregarFuncionarios();
       ToastService.ShowSuccess("Funcionário excluído com sucesso!");

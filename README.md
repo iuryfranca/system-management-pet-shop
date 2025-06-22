@@ -61,7 +61,7 @@ CREATE TABLE funcionario(
 CREATE TABLE animal(
     id_animal int not null auto_increment primary key,
     nome_ani varchar(300) not null,
-    tipo_ani ENUM('Cachorro', 'Gato', 'Pássaro', 'Peixe', 'Roedor', 'Réptil', 'Outro') not null,
+    tipo_ani ENUM('Cachorro', 'Gato', 'Passaro', 'Peixe', 'Roedor', 'Reptil', 'Outro') not null,
     raca_ani varchar(50) not null,
     idade_ani int,
     peso_ani double,
@@ -75,7 +75,7 @@ CREATE TABLE produto(
     marca_prod varchar(300),
     valor_prod decimal(10,2) not null,
     estoque int default 0,
-    categoria ENUM('Alimento', 'Medicamento', 'Higiene', 'Acessório', 'Outro') not null
+    categoria ENUM('Alimento', 'Medicamento', 'Higiene', 'Acessorio', 'Outro') not null
 );
 
 CREATE TABLE servico(
@@ -87,7 +87,7 @@ CREATE TABLE servico(
     id_func_fk int,
     id_animal_fk int,
     data_servico datetime not null,
-    status ENUM('Agendado', 'Em andamento', 'Concluído', 'Cancelado') default 'Agendado',
+    status ENUM('Agendado', 'EmAndamento', 'Concluído', 'Cancelado') default 'Agendado',
     foreign key (id_func_fk) references funcionario (id_func),
     foreign key (id_animal_fk) references animal (id_animal)
 );
