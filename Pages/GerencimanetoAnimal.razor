@@ -125,6 +125,10 @@
               <div class="font-bold">Dono</div>
               <div>@(animalItem.DonoNome ?? "N/A")</div>
             </div>
+            <div class="flex flex-col gap-2">
+              <div class="font-bold">Telefone do Dono</div>
+              <div class="">@FormatarTelefone(animalItem.DonoTelefone)</div>
+            </div>
           </div>
 
           <div class="flex justify-center gap-6 py-3 px-4 bg-gray-200 dark:bg-gray-700 rounded-b-lg">
@@ -373,9 +377,9 @@
   {
     try
     {
-      if (!string.IsNullOrEmpty(animal.DonoTelefone) && animal.DonoTelefone.Length > 11)
+      if (!string.IsNullOrWhiteSpace(animal.DonoTelefone))
       {
-        animal.DonoTelefone = animal.DonoTelefone.Substring(0, 11);
+        animal.DonoTelefone = LimparTelefone(animal.DonoTelefone);
       }
 
       await Task.Delay(1000);
@@ -407,6 +411,14 @@
 
       ToastService.ShowError($"Erro ao {(modoEdicao ? "atualizar" : "cadastrar")} animal: {mensagemErro}");
     }
+  }
+
+  private string LimparTelefone(string telefone)
+  {
+    if (string.IsNullOrWhiteSpace(telefone))
+      return "";
+
+    return new string(telefone.Where(char.IsDigit).ToArray());
   }
 
   private void EditarAnimal(Animal animalParaEditar)
@@ -444,5 +456,27 @@
     {
       ToastService.ShowError($"Erro ao excluir animal: {ex.Message}");
     }
+  }
+
+  private string FormatarTelefone(string telefone)
+  {
+    if (string.IsNullOrWhiteSpace(telefone))
+      return "N/A";
+
+    var numeroLimpo = new string(telefone.Where(char.IsDigit).ToArray());
+    
+    if (numeroLimpo.Length < 10)
+      return telefone;
+    
+    if (numeroLimpo.Length == 10)
+    {
+      return $"({numeroLimpo.Substring(0, 2)}) {numeroLimpo.Substring(2, 4)}-{numeroLimpo.Substring(6)}";
+    }
+    else if (numeroLimpo.Length == 11)
+    {
+      return $"({numeroLimpo.Substring(0, 2)}) {numeroLimpo.Substring(2, 1)} {numeroLimpo.Substring(3, 4)}-{numeroLimpo.Substring(7)}";
+    }
+    
+    return telefone;
   }
 }

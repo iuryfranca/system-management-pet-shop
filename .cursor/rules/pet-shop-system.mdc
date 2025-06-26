@@ -1,5 +1,5 @@
 ---
-description: 
+description: This rule needs auto to be included
 globs: 
 alwaysApply: false
 ---
@@ -127,4 +127,5 @@ dotnet build
 - Manter a estrutura de serviços e padrões já estabelecidos
 - Implementar autenticação adequada para diferentes níveis de usuário
 - Garantir responsividade e boa UX com Tailwind CSS
+
 

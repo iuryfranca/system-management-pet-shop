@@ -106,7 +106,7 @@
             </div>
             <div class="flex flex-col gap-2">
               <div class="font-bold">Telefone</div>
-              <div class="">@funcionario.TelefoneFunc</div>
+              <div class="">@FormatarTelefone(funcionario.TelefoneFunc)</div>
             </div>
           </div>
 
@@ -318,6 +318,12 @@
   {
     try
     {
+      // Limpar máscara do telefone antes de salvar
+      if (!string.IsNullOrWhiteSpace(funcionario.TelefoneFunc))
+      {
+        funcionario.TelefoneFunc = LimparTelefone(funcionario.TelefoneFunc);
+      }
+
       await Task.Delay(1000);
 
       if (modoEdicao)
@@ -327,9 +333,6 @@
       }
       else
       {
-        Console.WriteLine("#################################### ");
-        Console.WriteLine("Telefone: " + funcionario.TelefoneFunc);
-        Console.WriteLine("#################################### ");
         await FuncionarioService.CreateFuncionario(funcionario);
         ToastService.ShowSuccess("Funcionário cadastrado com sucesso!");
       }
@@ -345,8 +348,23 @@
     }
   }
 
+  private string LimparTelefone(string telefone)
+  {
+    if (string.IsNullOrWhiteSpace(telefone))
+      return "";
+
+    // Remove todos os caracteres não numéricos
+    return new string(telefone.Where(char.IsDigit).ToArray());
+  }
+
   private void EditarFuncionario(Funcionario funcionarioParaEditar)
   {
+
+    if (!string.IsNullOrEmpty(funcionario.TelefoneFunc) && funcionario.TelefoneFunc.Length > 11)
+    {
+      funcionario.TelefoneFunc = funcionario.TelefoneFunc.Substring(0, 11);
+    }
+
     funcionario = new Funcionario
     {
       Id = funcionarioParaEditar.Id,
@@ -375,5 +393,30 @@
     {
       ToastService.ShowError($"Erro ao excluir funcionário: {ex.Message}");
     }
+  }
+
+  private string FormatarTelefone(string telefone)
+  {
+    if (string.IsNullOrWhiteSpace(telefone))
+      return "";
+
+    // Remove caracteres não numéricos para garantir que só temos números
+    var numeroLimpo = new string(telefone.Where(char.IsDigit).ToArray());
+    
+    if (numeroLimpo.Length < 10)
+      return telefone; // Retorna o original se não tiver pelo menos 10 dígitos
+    
+    if (numeroLimpo.Length == 10)
+    {
+      // Formato (XX) XXXX-XXXX
+      return $"({numeroLimpo.Substring(0, 2)}) {numeroLimpo.Substring(2, 4)}-{numeroLimpo.Substring(6)}";
+    }
+    else if (numeroLimpo.Length == 11)
+    {
+      // Formato (XX) 9 XXXX-XXXX
+      return $"({numeroLimpo.Substring(0, 2)}) {numeroLimpo.Substring(2, 1)} {numeroLimpo.Substring(3, 4)}-{numeroLimpo.Substring(7)}";
+    }
+    
+    return telefone; // Retorna o original se não conseguir formatar
   }
 }

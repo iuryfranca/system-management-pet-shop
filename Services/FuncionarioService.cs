@@ -1,6 +1,7 @@
 using SystemManagementPetshop.Context;
 using SystemManagementPetshop.Models;
 using Microsoft.EntityFrameworkCore;
+using BCrypt.Net;
 
 namespace SystemManagementPetshop.Services;
 
@@ -32,8 +33,13 @@ public class FuncionarioService
 
     public async Task<Funcionario>? CreateFuncionario(Funcionario funcionario)
     {
-
         _context.ChangeTracker.Clear();
+
+        // Hash da senha antes de salvar
+        if (!string.IsNullOrEmpty(funcionario.SenhaFunc))
+        {
+            funcionario.SenhaFunc = HashPassword(funcionario.SenhaFunc);
+        }
 
         await _context.Funcionarios.AddAsync(funcionario);
         await _context.SaveChangesAsync();
@@ -60,10 +66,55 @@ public class FuncionarioService
             throw new Exception($"Funcionário com ID {funcionario.Id} não encontrado");
         }
 
+        // Verificar se a senha foi alterada (nova senha não deve vir hasheada)
+        var funcionarioExistente = await _context.Funcionarios.AsNoTracking()
+            .FirstOrDefaultAsync(f => f.Id == funcionario.Id);
+
+        if (funcionarioExistente != null && 
+            !string.IsNullOrEmpty(funcionario.SenhaFunc) && 
+            funcionario.SenhaFunc != funcionarioExistente.SenhaFunc)
+        {
+            // Se a senha é diferente da atual e não parece estar hasheada (muito curta ou muito simples)
+            // então fazemos o hash da nova senha
+            if (funcionario.SenhaFunc.Length < 60) // Senhas BCrypt têm ~60 caracteres
+            {
+                funcionario.SenhaFunc = HashPassword(funcionario.SenhaFunc);
+            }
+        }
+
         _context.ChangeTracker.Clear();
         _context.Funcionarios.Update(funcionario);
         await _context.SaveChangesAsync();
 
         return funcionario;
+    }
+
+    // Métodos para hash e verificação de senha
+    private string HashPassword(string password)
+    {
+        return BCrypt.Net.BCrypt.HashPassword(password, BCrypt.Net.BCrypt.GenerateSalt());
+    }
+
+    private bool VerifyPassword(string password, string hashedPassword)
+    {
+        return BCrypt.Net.BCrypt.Verify(password, hashedPassword);
+    }
+
+    public async Task<bool> ValidarCredenciais(string email, string senha)
+    {
+        try
+        {
+            var funcionario = await _context.Funcionarios
+                .FirstOrDefaultAsync(f => f.EmailFunc == email);
+
+            if (funcionario == null)
+                return false;
+
+            return VerifyPassword(senha, funcionario.SenhaFunc);
+        }
+        catch
+        {
+            return false;
+        }
     }
 }

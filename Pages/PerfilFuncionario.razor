@@ -1,0 +1,450 @@
+@page "/perfil-funcionario"
+@using SystemManagementPetshop.Models
+@using SystemManagementPetshop.Services
+@using Microsoft.AspNetCore.Components.Forms
+@using Microsoft.JSInterop
+@using BlazorInputMask
+@inject FuncionarioService FuncionarioService
+@inject NavigationManager NavigationManager
+@inject ToastService ToastService
+@inject IJSRuntime JS
+
+<PageTitle>Perfil do Funcionário</PageTitle>
+
+<div class="flex flex-col gap-4">
+  <Header Title="Perfil do Funcionário"
+    Description="Visualize e gerencie suas informações pessoais e credenciais de acesso." />
+
+  @if (isLoading)
+  {
+    <!-- Skeleton Loading -->
+    <div role="status" class="animate-pulse">
+      <div class="bg-gray-50 dark:bg-gray-800 rounded-lg shadow-sm border-2 border-gray-200 dark:border-gray-700 p-6">
+        <div class="flex items-center space-x-4 mb-6">
+          <div class="w-20 h-20 bg-gray-200 rounded-full dark:bg-gray-700"></div>
+          <div class="space-y-2 flex-1">
+            <div class="h-6 bg-gray-200 rounded dark:bg-gray-700 w-48"></div>
+            <div class="h-4 bg-gray-200 rounded dark:bg-gray-700 w-32"></div>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div class="space-y-2">
+            <div class="h-4 bg-gray-200 rounded dark:bg-gray-700 w-16"></div>
+            <div class="h-6 bg-gray-200 rounded dark:bg-gray-700 w-full"></div>
+          </div>
+          <div class="space-y-2">
+            <div class="h-4 bg-gray-200 rounded dark:bg-gray-700 w-16"></div>
+            <div class="h-6 bg-gray-200 rounded dark:bg-gray-700 w-full"></div>
+          </div>
+          <div class="space-y-2">
+            <div class="h-4 bg-gray-200 rounded dark:bg-gray-700 w-16"></div>
+            <div class="h-6 bg-gray-200 rounded dark:bg-gray-700 w-full"></div>
+          </div>
+          <div class="space-y-2">
+            <div class="h-4 bg-gray-200 rounded dark:bg-gray-700 w-16"></div>
+            <div class="h-6 bg-gray-200 rounded dark:bg-gray-700 w-full"></div>
+          </div>
+        </div>
+
+        <div class="flex gap-4 mt-6">
+          <div class="h-10 bg-gray-200 rounded-lg dark:bg-gray-700 w-32"></div>
+          <div class="h-10 bg-gray-200 rounded-lg dark:bg-gray-700 w-32"></div>
+        </div>
+      </div>
+      <span class="sr-only">Carregando...</span>
+    </div>
+  }
+  else if (funcionarioLogado != null)
+  {
+    <!-- Perfil do Funcionário -->
+    <div class="bg-gray-50 dark:bg-gray-800 rounded-lg shadow-sm border-2 border-gray-200 dark:border-gray-700 p-6">
+      <!-- Header do Perfil -->
+      <div class="flex items-center space-x-4 mb-6">
+        <div class="w-20 h-20 bg-sky-100 dark:bg-sky-900 rounded-full flex items-center justify-center">
+          <svg class="w-12 h-12 text-sky-600 dark:text-sky-400" fill="currentColor" viewBox="0 0 20 20"
+            xmlns="http://www.w3.org/2000/svg">
+            <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd"></path>
+          </svg>
+        </div>
+        <div>
+          <h2 class="text-2xl font-bold text-gray-900 dark:text-white">@funcionarioLogado.NomeFunc</h2>
+          <p class="text-lg text-gray-600 dark:text-gray-400">@funcionarioLogado.CargoFunc</p>
+        </div>
+      </div>
+
+      <!-- Informações do Funcionário -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Nome Completo</label>
+          <div
+            class="bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-3 text-gray-900 dark:text-white">
+            @funcionarioLogado.NomeFunc
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Cargo</label>
+          <div
+            class="bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-3 text-gray-900 dark:text-white">
+            @funcionarioLogado.CargoFunc
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Email</label>
+          <div
+            class="bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-3 text-gray-900 dark:text-white">
+            @funcionarioLogado.EmailFunc
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Telefone</label>
+          <div
+            class="bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-3 text-gray-900 dark:text-white">
+            @(FormatarTelefone(funcionarioLogado.TelefoneFunc) ?? "Não informado")
+          </div>
+        </div>
+      </div>
+
+      <!-- Botões de Ação -->
+      <div class="flex flex-wrap gap-4">
+        <button @onclick="ShowModalEditar"
+          class="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-sky-700 rounded-lg hover:bg-sky-800 focus:ring-4 focus:outline-none focus:ring-sky-300 dark:bg-sky-600 dark:hover:bg-sky-700 dark:focus:ring-sky-800">
+          <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+            xmlns="http://www.w3.org/2000/svg">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z">
+            </path>
+          </svg>
+          Editar Perfil
+        </button>
+
+        <button @onclick="ShowModalSenha"
+          class="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-yellow-600 rounded-lg hover:bg-yellow-700 focus:ring-4 focus:outline-none focus:ring-yellow-300 dark:bg-yellow-600 dark:hover:bg-yellow-700 dark:focus:ring-yellow-800">
+          <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+            xmlns="http://www.w3.org/2000/svg">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v-2l-4.257-2.257A6 6 0 1115 7z"></path>
+          </svg>
+          Alterar Senha
+        </button>
+      </div>
+    </div>
+  }
+  else
+  {
+    <!-- Funcionário não encontrado -->
+    <div class="bg-white dark:bg-gray-800 p-8 rounded-lg text-center border-2 border-gray-200 dark:border-gray-700">
+      <svg class="w-16 h-16 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+        xmlns="http://www.w3.org/2000/svg">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+          d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.732-.833-2.5 0L4.314 16.5c-.77.833.192 2.5 1.732 2.5z">
+        </path>
+      </svg>
+      <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-2">Funcionário não encontrado</h3>
+      <p class="text-gray-500 dark:text-gray-400">Não foi possível encontrar o funcionário com o email especificado.</p>
+    </div>
+  }
+
+  <!-- Modal de Edição do Perfil -->
+  <div id="editar-modal" tabindex="-1" aria-hidden="true" data-modal-backdrop="static"
+    class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full">
+    <div class="relative p-4 w-full max-w-2xl max-h-full">
+      <div class="relative bg-white rounded-lg shadow-sm dark:bg-gray-700">
+        <div
+          class="flex items-center justify-between p-4 md:p-5 border-b rounded-t dark:border-gray-600 border-gray-200">
+          <h3 class="text-xl font-semibold text-gray-900 dark:text-white">Editar Perfil</h3>
+          <button type="button" @onclick="CloseModalEditar"
+            class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white">
+            <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
+              <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6" />
+            </svg>
+            <span class="sr-only">Fechar modal</span>
+          </button>
+        </div>
+
+        <EditForm Model="@funcionarioEdicao" OnValidSubmit="HandleEditarPerfil" class="p-4">
+          <DataAnnotationsValidator />
+
+          <div class="relative z-0 w-full mb-5 group">
+            <input @bind="funcionarioEdicao.NomeFunc" id="floating_nome_funcionario"
+              class="block py-2.5 px-0 w-full text-sm text-gray-900 bg-transparent border-0 border-b-2 border-gray-300 appearance-none dark:text-white dark:border-gray-600 dark:focus:border-blue-500 focus:outline-none focus:ring-0 focus:border-blue-600 peer"
+              placeholder=" " required />
+            <label for="floating_nome_funcionario"
+              class="peer-focus:font-medium absolute text-sm text-gray-500 dark:text-gray-400 duration-300 transform -translate-y-6 scale-75 top-3 -z-10 origin-[0] peer-focus:start-0 rtl:peer-focus:translate-x-1/4 peer-focus:text-blue-600 peer-focus:dark:text-blue-500 peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-6">Nome
+              Completo</label>
+          </div>
+
+          <div class="relative z-0 w-full mb-5 group">
+            <label for="select_cargo" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Cargo</label>
+            <select id="select_cargo" @bind="funcionarioEdicao.CargoFunc"
+              class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+              required>
+              <option value="">Selecione um cargo</option>
+              <option value="Gerente">Gerente</option>
+              <option value="Veterinário">Veterinário</option>
+              <option value="Atendente">Atendente</option>
+              <option value="Tosador">Tosador</option>
+              <option value="Auxiliar">Auxiliar</option>
+              <option value="Recepcionista">Recepcionista</option>
+            </select>
+          </div>
+
+          <div class="relative z-0 w-full mb-5 group">
+            <InputMask name="telefone" id="floating_telefone_func" data-mask="(00) 0 0000-0000"
+              @bind-Value="funcionarioEdicao.TelefoneFunc"
+              class="block py-2.5 px-0 w-full text-sm text-gray-900 bg-transparent border-0 border-b-2 border-gray-300 appearance-none dark:text-white dark:border-gray-600 dark:focus:border-blue-500 focus:outline-none focus:ring-0 focus:border-blue-600 peer"
+              placeholder=" " />
+            <label for="floating_telefone_func"
+              class="peer-focus:font-medium absolute text-sm text-gray-500 dark:text-gray-400 duration-300 transform -translate-y-6 scale-75 top-3 -z-10 origin-[0] peer-focus:start-0 rtl:peer-focus:translate-x-1/4 peer-focus:text-blue-600 peer-focus:dark:text-blue-500 peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-6">Telefone</label>
+          </div>
+
+          <div class="relative z-0 w-full mb-5 group">
+            <input @bind="funcionarioEdicao.EmailFunc" type="email" id="floating_email"
+              class="block py-2.5 px-0 w-full text-sm text-gray-900 bg-transparent border-0 border-b-2 border-gray-300 appearance-none dark:text-white dark:border-gray-600 dark:focus:border-blue-500 focus:outline-none focus:ring-0 focus:border-blue-600 peer"
+              placeholder=" " required />
+            <label for="floating_email"
+              class="peer-focus:font-medium absolute text-sm text-gray-500 dark:text-gray-400 duration-300 transform -translate-y-6 scale-75 top-3 -z-10 origin-[0] peer-focus:start-0 rtl:peer-focus:translate-x-1/4 peer-focus:text-blue-600 peer-focus:dark:text-blue-500 peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-6">Email</label>
+          </div>
+
+          <div class="flex items-center rounded-b dark:border-gray-600">
+            <button type="submit"
+              class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">
+              Atualizar Perfil</button>
+            <button type="button" @onclick="CloseModalEditar"
+              class="py-2.5 px-5 ms-3 text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-100 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700">Cancelar</button>
+          </div>
+        </EditForm>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal de Troca de Senha -->
+  <div id="senha-modal" tabindex="-1" aria-hidden="true" data-modal-backdrop="static"
+    class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full">
+    <div class="relative p-4 w-full max-w-md max-h-full">
+      <div class="relative bg-white rounded-lg shadow-sm dark:bg-gray-700">
+        <div
+          class="flex items-center justify-between p-4 md:p-5 border-b rounded-t dark:border-gray-600 border-gray-200">
+          <h3 class="text-xl font-semibold text-gray-900 dark:text-white">Alterar Senha</h3>
+          <button type="button" @onclick="CloseModalSenha"
+            class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white">
+            <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
+              <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6" />
+            </svg>
+            <span class="sr-only">Fechar modal</span>
+          </button>
+        </div>
+
+        <EditForm Model="@trocarSenhaModel" OnValidSubmit="HandleTrocarSenha" class="p-4">
+          <div class="relative z-0 w-full mb-5 group">
+            <input @bind="trocarSenhaModel.NovaSenha" type="password" id="floating_nova_senha"
+              class="block py-2.5 px-0 w-full text-sm text-gray-900 bg-transparent border-0 border-b-2 border-gray-300 appearance-none dark:text-white dark:border-gray-600 dark:focus:border-blue-500 focus:outline-none focus:ring-0 focus:border-blue-600 peer"
+              placeholder=" " required />
+            <label for="floating_nova_senha"
+              class="peer-focus:font-medium absolute text-sm text-gray-500 dark:text-gray-400 duration-300 transform -translate-y-6 scale-75 top-3 -z-10 origin-[0] peer-focus:start-0 rtl:peer-focus:translate-x-1/4 peer-focus:text-blue-600 peer-focus:dark:text-blue-500 peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-6">Nova
+              Senha</label>
+          </div>
+
+          <div class="relative z-0 w-full mb-5 group">
+            <input @bind="trocarSenhaModel.ConfirmarSenha" type="password" id="floating_confirmar_senha"
+              class="block py-2.5 px-0 w-full text-sm text-gray-900 bg-transparent border-0 border-b-2 border-gray-300 appearance-none dark:text-white dark:border-gray-600 dark:focus:border-blue-500 focus:outline-none focus:ring-0 focus:border-blue-600 peer"
+              placeholder=" " required />
+            <label for="floating_confirmar_senha"
+              class="peer-focus:font-medium absolute text-sm text-gray-500 dark:text-gray-400 duration-300 transform -translate-y-6 scale-75 top-3 -z-10 origin-[0] peer-focus:start-0 rtl:peer-focus:translate-x-1/4 peer-focus:text-blue-600 peer-focus:dark:text-blue-500 peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-6">Confirmar
+              Senha</label>
+          </div>
+
+          <div class="flex items-center rounded-b dark:border-gray-600">
+            <button type="submit"
+              class="text-white bg-yellow-600 hover:bg-yellow-700 focus:ring-4 focus:outline-none focus:ring-yellow-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-yellow-600 dark:hover:bg-yellow-700 dark:focus:ring-yellow-800">
+              Alterar Senha</button>
+            <button type="button" @onclick="CloseModalSenha"
+              class="py-2.5 px-5 ms-3 text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-100 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700">Cancelar</button>
+          </div>
+        </EditForm>
+      </div>
+    </div>
+  </div>
+</div>
+
+@code {
+  private const string EMAIL_FUNCIONARIO_LOGADO = "iurygfranca@gmail.com";
+
+  private Funcionario? funcionarioLogado;
+  private Funcionario funcionarioEdicao = new Funcionario();
+  private TrocarSenhaModel trocarSenhaModel = new TrocarSenhaModel();
+  private bool isLoading = true;
+
+  public class TrocarSenhaModel
+  {
+    public string NovaSenha { get; set; } = "";
+    public string ConfirmarSenha { get; set; } = "";
+  }
+
+  protected override async Task OnInitializedAsync()
+  {
+    await CarregarPerfilFuncionario();
+  }
+
+  private async Task CarregarPerfilFuncionario()
+  {
+    try
+    {
+      isLoading = true;
+      StateHasChanged();
+
+      await Task.Delay(1500); // Simula carregamento
+
+      funcionarioLogado = await FuncionarioService.GetFuncionarioByEmail(EMAIL_FUNCIONARIO_LOGADO);
+    }
+    catch (Exception ex)
+    {
+      Console.WriteLine($"Erro ao carregar funcionário: {ex.Message}");
+      ToastService.ShowError($"Erro ao carregar perfil: {ex.Message}");
+    }
+    finally
+    {
+      isLoading = false;
+      StateHasChanged();
+    }
+  }
+
+  private async Task ShowModalEditar()
+  {
+    if (funcionarioLogado != null)
+    {
+      funcionarioEdicao = new Funcionario
+      {
+        Id = funcionarioLogado.Id,
+        NomeFunc = funcionarioLogado.NomeFunc,
+        CargoFunc = funcionarioLogado.CargoFunc,
+        TelefoneFunc = funcionarioLogado.TelefoneFunc,
+        EmailFunc = funcionarioLogado.EmailFunc,
+        SenhaFunc = funcionarioLogado.SenhaFunc
+      };
+    }
+    await JS.InvokeVoidAsync("flowbiteInterop.showModal", "editar-modal");
+  }
+
+  private async Task CloseModalEditar()
+  {
+    funcionarioEdicao = new Funcionario();
+    await JS.InvokeVoidAsync("flowbiteInterop.closeModal", "editar-modal");
+  }
+
+  private async Task ShowModalSenha()
+  {
+    trocarSenhaModel = new TrocarSenhaModel();
+    await JS.InvokeVoidAsync("flowbiteInterop.showModal", "senha-modal");
+  }
+
+  private async Task CloseModalSenha()
+  {
+    trocarSenhaModel = new TrocarSenhaModel();
+    await JS.InvokeVoidAsync("flowbiteInterop.closeModal", "senha-modal");
+  }
+
+  private async Task HandleEditarPerfil()
+  {
+    try
+    {
+      if (!string.IsNullOrWhiteSpace(funcionarioEdicao.TelefoneFunc))
+      {
+        funcionarioEdicao.TelefoneFunc = LimparTelefone(funcionarioEdicao.TelefoneFunc);
+      }
+
+      await Task.Delay(1000);
+
+      await FuncionarioService.UpdateFuncionario(funcionarioEdicao);
+
+      // Atualizar os dados exibidos
+      funcionarioLogado = funcionarioEdicao;
+
+      ToastService.ShowSuccess("Perfil atualizado com sucesso!");
+      await CloseModalEditar();
+    }
+    catch (Exception ex)
+    {
+      Console.WriteLine($"Erro completo: {ex}");
+      string mensagemErro = ex.InnerException != null ? $"{ex.Message} - {ex.InnerException.Message}" : ex.Message;
+      ToastService.ShowError($"Erro ao atualizar perfil: {mensagemErro}");
+    }
+  }
+
+  private string LimparTelefone(string telefone)
+  {
+    if (string.IsNullOrWhiteSpace(telefone))
+      return "";
+
+    return new string(telefone.Where(char.IsDigit).ToArray());
+  }
+
+  private async Task HandleTrocarSenha()
+  {
+    try
+    {
+      if (trocarSenhaModel.NovaSenha != trocarSenhaModel.ConfirmarSenha)
+      {
+        ToastService.ShowError("As senhas não coincidem!");
+        return;
+      }
+
+      if (string.IsNullOrWhiteSpace(trocarSenhaModel.NovaSenha) || trocarSenhaModel.NovaSenha.Length < 6)
+      {
+        ToastService.ShowError("A senha deve ter pelo menos 6 caracteres!");
+        return;
+      }
+
+      if (funcionarioLogado == null) return;
+
+      await Task.Delay(1000);
+
+      var funcionarioAtualizado = new Funcionario
+      {
+        Id = funcionarioLogado.Id,
+        NomeFunc = funcionarioLogado.NomeFunc,
+        CargoFunc = funcionarioLogado.CargoFunc,
+        TelefoneFunc = funcionarioLogado.TelefoneFunc,
+        EmailFunc = funcionarioLogado.EmailFunc,
+        SenhaFunc = trocarSenhaModel.NovaSenha
+      };
+
+      await FuncionarioService.UpdateFuncionario(funcionarioAtualizado);
+      funcionarioLogado.SenhaFunc = trocarSenhaModel.NovaSenha;
+
+      ToastService.ShowSuccess("Senha alterada com sucesso!");
+      await CloseModalSenha();
+    }
+    catch (Exception ex)
+    {
+      ToastService.ShowError($"Erro ao alterar senha: {ex.Message}");
+    }
+  }
+
+  private string FormatarTelefone(string telefone)
+  {
+    if (string.IsNullOrWhiteSpace(telefone))
+      return null;
+
+    var numeroLimpo = new string(telefone.Where(char.IsDigit).ToArray());
+    
+    if (numeroLimpo.Length < 10)
+      return telefone;
+    
+    if (numeroLimpo.Length == 10)
+    {
+      return $"({numeroLimpo.Substring(0, 2)}) {numeroLimpo.Substring(2, 4)}-{numeroLimpo.Substring(6)}";
+    }
+    else if (numeroLimpo.Length == 11)
+    {
+      return $"({numeroLimpo.Substring(0, 2)}) {numeroLimpo.Substring(2, 1)} {numeroLimpo.Substring(3, 4)}-{numeroLimpo.Substring(7)}";
+    }
+    
+    return telefone;
+  }
+}
