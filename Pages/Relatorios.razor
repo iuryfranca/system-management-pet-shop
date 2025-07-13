@@ -1,0 +1,439 @@
+@page "/relatorios"
+@using SystemManagementPetshop.Models
+@using SystemManagementPetshop.Services
+@using Microsoft.JSInterop
+@using System.Text
+@inject ServicoService ServicoService
+@inject AnimalService AnimalService
+@inject FuncionarioService FuncionarioService
+@inject ToastService ToastService
+@inject IJSRuntime JS
+
+<PageTitle>Relatórios</PageTitle>
+
+<div class="flex flex-col gap-4">
+  <Header Title="Relatórios"
+    Description="Gere e baixe relatórios detalhados sobre serviços, animais e funcionários do pet shop." />
+
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border-2 border-gray-200 dark:border-gray-700 p-6">
+      <div class="flex flex-col h-full">
+        <div class="flex items-center mb-4">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+            class="w-8 h-8 text-blue-600 mr-3">
+            <path
+              d="M12 5c.67 0 1.35.09 2 .26 1.78-2 5.03-2.84 6.42-2.26 1.4.58-.42 7-.42 7 .57 1.07 1 2.24 1 3.44C21 17.9 16.97 21 12 21s-9-3-9-7.56c0-1.25.5-2.4 1-3.44 0 0-1.89-6.42-.5-7 1.39-.58 4.72.23 6.5 2.23A9.04 9.04 0 0 1 12 5Z" />
+            <path d="M8 14v.5" />
+            <path d="M16 14v.5" />
+            <path d="M11.25 16.25h1.5L12 17l-.75-.75Z" />
+          </svg>
+          <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Serviços por Tipo de Animal</h3>
+        </div>
+        <p class="text-gray-600 dark:text-gray-400 mb-4 flex-grow">
+          Relatório detalhado mostrando a quantidade de serviços realizados para cada tipo de animal.
+        </p>
+
+        @if (relatorio1Loading)
+        {
+          <button disabled class="w-full bg-gray-400 text-white py-2 px-4 rounded-lg flex items-center justify-center">
+            <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none"
+              viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" fill="currentColor"
+                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+              </path>
+            </svg>
+            Gerando Relatório...
+          </button>
+        }
+        else if (relatorio1Pronto)
+        {
+          <div class="space-y-2">
+            <div class="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-3">
+              <p class="text-green-800 dark:text-green-300 text-sm font-medium">
+                ✓ Relatório pronto para impressão (@relatorio1Dados.Count registros)
+              </p>
+            </div>
+            <button @onclick="() => BaixarRelatorio(1)"
+              class="w-full bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded-lg transition-colors">
+              Baixar PDF
+            </button>
+          </div>
+        }
+        else
+        {
+          <button @onclick="() => GerarRelatorio1()"
+            class="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-lg transition-colors">
+            Gerar Relatório
+          </button>
+        }
+      </div>
+    </div>
+
+    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border-2 border-gray-200 dark:border-gray-700 p-6">
+      <div class="flex flex-col h-full">
+        <div class="flex items-center mb-4">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+            class="w-8 h-8 text-green-600 mr-3">
+            <path d="m4.5 8 10.58-5.06a1 1 0 0 1 1.342.488L18.5 8" />
+            <path d="M6 10V8" />
+            <path d="M6 14v1" />
+            <path d="M6 19v2" />
+            <rect x="2" y="8" width="20" height="13" rx="2" />
+          </svg>
+          <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Ocorrências de Visitas</h3>
+        </div>
+        <p class="text-gray-600 dark:text-gray-400 mb-4 flex-grow">
+          Relatório com maior e menor ocorrências de visitas de animais ao pet shop.
+        </p>
+
+        @if (relatorio2Loading)
+        {
+          <button disabled class="w-full bg-gray-400 text-white py-2 px-4 rounded-lg flex items-center justify-center">
+            <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none"
+              viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" fill="currentColor"
+                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+              </path>
+            </svg>
+            Gerando Relatório...
+          </button>
+        }
+        else if (relatorio2Pronto)
+        {
+          <div class="space-y-2">
+            <div class="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-3">
+              <p class="text-green-800 dark:text-green-300 text-sm font-medium">
+                ✓ Relatório pronto para impressão (@relatorio2Dados.Count registros)
+              </p>
+            </div>
+            <button @onclick="() => BaixarRelatorio(2)"
+              class="w-full bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded-lg transition-colors">
+              Baixar PDF
+            </button>
+          </div>
+        }
+        else
+        {
+          <button @onclick="() => GerarRelatorio2()"
+            class="w-full bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded-lg transition-colors">
+            Gerar Relatório
+          </button>
+        }
+      </div>
+    </div>
+
+    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border-2 border-gray-200 dark:border-gray-700 p-6">
+      <div class="flex flex-col h-full">
+        <div class="flex items-center mb-4">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+            class="w-8 h-8 text-purple-600 mr-3">
+            <path d="M18 21a8 8 0 0 0-16 0" />
+            <circle cx="10" cy="8" r="5" />
+            <path d="M22 20c0-3.37-2-6.5-4-8a5 5 0 0 0-.45-8.3" />
+          </svg>
+          <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Serviços por Funcionário</h3>
+        </div>
+        <p class="text-gray-600 dark:text-gray-400 mb-4 flex-grow">
+          Relatório com maior e menor ocorrências de serviços realizados por funcionário.
+        </p>
+
+        @if (relatorio3Loading)
+        {
+          <button disabled class="w-full bg-gray-400 text-white py-2 px-4 rounded-lg flex items-center justify-center">
+            <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none"
+              viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" fill="currentColor"
+                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+              </path>
+            </svg>
+            Gerando Relatório...
+          </button>
+        }
+        else if (relatorio3Pronto)
+        {
+          <div class="space-y-2">
+            <div class="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-3">
+              <p class="text-green-800 dark:text-green-300 text-sm font-medium">
+                ✓ Relatório pronto para impressão (@relatorio3Dados.Count registros)
+              </p>
+            </div>
+            <button @onclick="() => BaixarRelatorio(3)"
+              class="w-full bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded-lg transition-colors">
+              Baixar PDF
+            </button>
+          </div>
+        }
+        else
+        {
+          <button @onclick="() => GerarRelatorio3()"
+            class="w-full bg-purple-600 hover:bg-purple-700 text-white py-2 px-4 rounded-lg transition-colors">
+            Gerar Relatório
+          </button>
+        }
+      </div>
+    </div>
+  </div>
+
+  <div class="bg-gray-50 dark:bg-gray-800 rounded-lg shadow-sm border-2 border-gray-200 dark:border-gray-700 p-6 mt-4">
+    <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Instruções</h3>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div class="flex items-start space-x-3">
+        <div class="flex-shrink-0">
+          <span
+            class="flex items-center justify-center w-8 h-8 bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-400 rounded-full text-sm font-medium">1</span>
+        </div>
+        <div>
+          <h4 class="text-sm font-medium text-gray-900 dark:text-white">Selecione o Relatório</h4>
+          <p class="text-sm text-gray-600 dark:text-gray-400">Clique no botão "Gerar Relatório" do relatório desejado.
+          </p>
+        </div>
+      </div>
+      <div class="flex items-start space-x-3">
+        <div class="flex-shrink-0">
+          <span
+            class="flex items-center justify-center w-8 h-8 bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-400 rounded-full text-sm font-medium">2</span>
+        </div>
+        <div>
+          <h4 class="text-sm font-medium text-gray-900 dark:text-white">Aguarde o Processamento</h4>
+          <p class="text-sm text-gray-600 dark:text-gray-400">O sistema irá buscar e processar os dados do banco.</p>
+        </div>
+      </div>
+      <div class="flex items-start space-x-3">
+        <div class="flex-shrink-0">
+          <span
+            class="flex items-center justify-center w-8 h-8 bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-400 rounded-full text-sm font-medium">3</span>
+        </div>
+        <div>
+          <h4 class="text-sm font-medium text-gray-900 dark:text-white">Baixe o PDF</h4>
+          <p class="text-sm text-gray-600 dark:text-gray-400">Quando pronto, clique em "Baixar PDF" para fazer o
+            download.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+@code {
+  private bool relatorio1Loading = false;
+  private bool relatorio1Pronto = false;
+  private List<RelatorioTipoAnimal> relatorio1Dados = new();
+
+  private bool relatorio2Loading = false;
+  private bool relatorio2Pronto = false;
+  private List<RelatorioVisitasAnimal> relatorio2Dados = new();
+
+  private bool relatorio3Loading = false;
+  private bool relatorio3Pronto = false;
+  private List<RelatorioServicosFuncionario> relatorio3Dados = new();
+
+  public class RelatorioTipoAnimal
+  {
+    public string TipoAnimal { get; set; } = "";
+    public int QuantidadeServicos { get; set; }
+    public decimal ValorTotal { get; set; }
+    public decimal ValorMedio { get; set; }
+  }
+
+  public class RelatorioVisitasAnimal
+  {
+    public int IdAnimal { get; set; }
+    public string NomeAnimal { get; set; } = "";
+    public string TipoAnimal { get; set; } = "";
+    public string DonAnimal { get; set; } = "";
+    public int QuantidadeVisitas { get; set; }
+    public DateTime? PrimeiraVisita { get; set; }
+    public DateTime? UltimaVisita { get; set; }
+  }
+
+  public class RelatorioServicosFuncionario
+  {
+    public int IdFuncionario { get; set; }
+    public string NomeFuncionario { get; set; } = "";
+    public string CargoFuncionario { get; set; } = "";
+    public int QuantidadeServicos { get; set; }
+    public decimal ValorTotalServicos { get; set; }
+    public decimal ValorMedioServicos { get; set; }
+    public DateTime? PrimeiroServico { get; set; }
+    public DateTime? UltimoServico { get; set; }
+  }
+
+  private async Task GerarRelatorio1()
+  {
+    try
+    {
+      relatorio1Loading = true;
+      relatorio1Pronto = false;
+      StateHasChanged();
+
+      await Task.Delay(2000);
+
+      var servicos = await ServicoService.GetServicos();
+
+      var dadosRelatorio = servicos
+      .Where(s => s.Animal != null)
+      .GroupBy(s => s.Animal.TipoAni)
+      .Select(g => new RelatorioTipoAnimal
+      {
+        TipoAnimal = g.Key.ToString(),
+        QuantidadeServicos = g.Count(),
+        ValorTotal = g.Sum(s => s.ValorServ),
+        ValorMedio = g.Average(s => s.ValorServ)
+      })
+      .OrderByDescending(x => x.QuantidadeServicos)
+      .ToList();
+
+      relatorio1Dados = dadosRelatorio;
+      relatorio1Pronto = true;
+
+      ToastService.ShowSuccess($"Relatório gerado com sucesso! {relatorio1Dados.Count} registros encontrados.");
+    }
+    catch (Exception ex)
+    {
+      ToastService.ShowError($"Erro ao gerar relatório: {ex.Message}");
+    }
+    finally
+    {
+      relatorio1Loading = false;
+      StateHasChanged();
+    }
+  }
+
+  private async Task GerarRelatorio2()
+  {
+    try
+    {
+      relatorio2Loading = true;
+      relatorio2Pronto = false;
+      StateHasChanged();
+
+      await Task.Delay(2000);
+
+      var servicos = await ServicoService.GetServicos();
+
+      var dadosRelatorio = servicos
+      .Where(s => s.Animal != null)
+      .GroupBy(s => new { s.Animal.Id, s.Animal.NomeAni, s.Animal.TipoAni, s.Animal.DonoNome })
+      .Select(g => new RelatorioVisitasAnimal
+      {
+        IdAnimal = g.Key.Id,
+        NomeAnimal = g.Key.NomeAni,
+        TipoAnimal = g.Key.TipoAni.ToString(),
+        DonAnimal = g.Key.DonoNome ?? "N/A",
+        QuantidadeVisitas = g.Count(),
+        UltimaVisita = g.Max(s => s.DataServico),
+        PrimeiraVisita = g.Min(s => s.DataServico)
+      })
+      .OrderByDescending(x => x.QuantidadeVisitas)
+      .ToList();
+
+      relatorio2Dados = dadosRelatorio;
+      relatorio2Pronto = true;
+
+      ToastService.ShowSuccess($"Relatório gerado com sucesso! {relatorio2Dados.Count} registros encontrados.");
+    }
+    catch (Exception ex)
+    {
+      ToastService.ShowError($"Erro ao gerar relatório: {ex.Message}");
+    }
+    finally
+    {
+      relatorio2Loading = false;
+      StateHasChanged();
+    }
+  }
+
+  private async Task GerarRelatorio3()
+  {
+    try
+    {
+      relatorio3Loading = true;
+      relatorio3Pronto = false;
+      StateHasChanged();
+
+      await Task.Delay(2000);
+
+      var servicos = await ServicoService.GetServicos();
+
+      var dadosRelatorio = servicos
+      .Where(s => s.Funcionario != null)
+      .GroupBy(s => new { s.Funcionario.Id, s.Funcionario.NomeFunc, s.Funcionario.CargoFunc })
+      .Select(g => new RelatorioServicosFuncionario
+      {
+        IdFuncionario = g.Key.Id,
+        NomeFuncionario = g.Key.NomeFunc,
+        CargoFuncionario = g.Key.CargoFunc,
+        QuantidadeServicos = g.Count(),
+        ValorTotalServicos = g.Sum(s => s.ValorServ),
+        ValorMedioServicos = g.Average(s => s.ValorServ),
+        UltimoServico = g.Max(s => s.DataServico),
+        PrimeiroServico = g.Min(s => s.DataServico)
+      })
+      .OrderByDescending(x => x.QuantidadeServicos)
+      .ToList();
+
+      relatorio3Dados = dadosRelatorio;
+      relatorio3Pronto = true;
+
+      ToastService.ShowSuccess($"Relatório gerado com sucesso! {relatorio3Dados.Count} registros encontrados.");
+    }
+    catch (Exception ex)
+    {
+      ToastService.ShowError($"Erro ao gerar relatório: {ex.Message}");
+    }
+    finally
+    {
+      relatorio3Loading = false;
+      StateHasChanged();
+    }
+  }
+
+  private async Task BaixarRelatorio(int tipoRelatorio)
+  {
+    try
+    {
+      string nomeArquivo = "";
+      object dados = null;
+
+      switch (tipoRelatorio)
+      {
+        case 1:
+          nomeArquivo = "Relatorio_Servicos_Por_Tipo_Animal";
+          dados = relatorio1Dados;
+          break;
+        case 2:
+          nomeArquivo = "Relatorio_Ocorrencias_Visitas_Animais";
+          dados = relatorio2Dados;
+          break;
+        case 3:
+          nomeArquivo = "Relatorio_Servicos_Por_Funcionario";
+          dados = relatorio3Dados;
+          break;
+      }
+
+      if (dados != null && ((IEnumerable<object>)dados).Any())
+      {
+        var nomeArquivoCompleto = $"{nomeArquivo}_{DateTime.Now:yyyy-MM-dd_HH-mm-ss}.pdf";
+
+        await JS.InvokeVoidAsync("downloadPDFReport", nomeArquivoCompleto, dados, tipoRelatorio);
+        ToastService.ShowSuccess("Download do PDF iniciado com sucesso!");
+      }
+      else
+      {
+        ToastService.ShowError("Nenhum dado disponível para download.");
+      }
+    }
+    catch (Exception ex)
+    {
+      ToastService.ShowError($"Erro ao fazer download: {ex.Message}");
+    }
+  }
+
+
+}

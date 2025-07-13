@@ -364,6 +364,9 @@
   .mr-2 {
     margin-right: calc(var(--spacing) * 2);
   }
+  .mr-3 {
+    margin-right: calc(var(--spacing) * 3);
+  }
   .mb-1 {
     margin-bottom: calc(var(--spacing) * 1);
   }
@@ -381,6 +384,9 @@
   }
   .mb-6 {
     margin-bottom: calc(var(--spacing) * 6);
+  }
+  .-ml-1 {
+    margin-left: calc(var(--spacing) * -1);
   }
   .ml-3 {
     margin-left: calc(var(--spacing) * 3);
@@ -565,6 +571,9 @@
   .shrink-0 {
     flex-shrink: 0;
   }
+  .flex-grow {
+    flex-grow: 1;
+  }
   .border-collapse {
     border-collapse: collapse;
   }
@@ -739,6 +748,13 @@
       margin-inline-end: calc(calc(var(--spacing) * 2) * calc(1 - var(--tw-space-x-reverse)));
     }
   }
+  .space-x-3 {
+    :where(& > :not(:last-child)) {
+      --tw-space-x-reverse: 0;
+      margin-inline-start: calc(calc(var(--spacing) * 3) * var(--tw-space-x-reverse));
+      margin-inline-end: calc(calc(var(--spacing) * 3) * calc(1 - var(--tw-space-x-reverse)));
+    }
+  }
   .space-x-4 {
     :where(& > :not(:last-child)) {
       --tw-space-x-reverse: 0;
@@ -888,6 +904,9 @@
   .bg-gray-300 {
     background-color: #D1D5DB;
   }
+  .bg-gray-400 {
+    background-color: #9CA3AF;
+  }
   .bg-gray-600 {
     background-color: #4B5563;
   }
@@ -923,6 +942,9 @@
   }
   .bg-orange-700 {
     background-color: #B43403;
+  }
+  .bg-purple-600 {
+    background-color: #7E3AF2;
   }
   .bg-purple-700 {
     background-color: #6C2BD9;
@@ -1165,6 +1187,9 @@
   .text-orange-800 {
     color: #8A2C0D;
   }
+  .text-purple-600 {
+    color: #7E3AF2;
+  }
   .text-red-500 {
     color: #F05252;
   }
@@ -1196,6 +1221,12 @@
   }
   .opacity-0 {
     opacity: 0%;
+  }
+  .opacity-25 {
+    opacity: 25%;
+  }
+  .opacity-75 {
+    opacity: 75%;
   }
   .opacity-100 {
     opacity: 100%;
@@ -1418,6 +1449,13 @@
     &:hover {
       @media (hover: hover) {
         background-color: #8A2C0D;
+      }
+    }
+  }
+  .hover\:bg-purple-700 {
+    &:hover {
+      @media (hover: hover) {
+        background-color: #6C2BD9;
       }
     }
   }
@@ -1656,6 +1694,11 @@
       grid-template-columns: repeat(2, minmax(0, 1fr));
     }
   }
+  .md\:grid-cols-3 {
+    @media (width >= 48rem) {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
   .md\:flex-row {
     @media (width >= 48rem) {
       flex-direction: row;
@@ -1773,6 +1816,11 @@
   .dark\:bg-blue-600 {
     &:where(.dark, .dark *) {
       background-color: #1C64F2;
+    }
+  }
+  .dark\:bg-blue-900 {
+    &:where(.dark, .dark *) {
+      background-color: #233876;
     }
   }
   .dark\:bg-blue-900\/20 {
