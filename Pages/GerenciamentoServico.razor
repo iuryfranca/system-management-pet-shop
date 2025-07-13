@@ -1,0 +1,535 @@
+@page "/gerenciamento-servico"
+@using SystemManagementPetshop.Models
+@using SystemManagementPetshop.Services
+@using Microsoft.AspNetCore.Components.Forms
+@using Microsoft.JSInterop
+@inject ServicoService ServicoService
+@inject FuncionarioService FuncionarioService
+@inject AnimalService AnimalService
+@inject NavigationManager NavigationManager
+@inject ToastService ToastService
+@inject IJSRuntime JS
+
+<PageTitle>Gerenciamento de Serviços</PageTitle>
+
+<div class="flex flex-col gap-4">
+  <Header Title="Gerenciamento de Serviços"
+    Description="Cadastre e gerencie serviços do pet shop, incluindo agendamentos e informações de funcionários." />
+
+  <div class="flex flex-row gap-8 w-full">
+    <div class="bg-gray-50 dark:bg-gray-800 rounded-lg w-full shadow-sm border-2 border-gray-200 dark:border-gray-700">
+      <div class="px-4 py-3 flex flex-row gap-6 text-gray-700 dark:text-gray-300">
+        <div class="flex flex-col gap-2 w-full">
+          <div class="font-bold">Pesquisa de texto</div>
+          <div class="relative z-0 w-full group">
+            <input @bind="filtroTexto" @bind:event="oninput"
+              class="block py-2.5 px-0 w-full text-sm text-gray-900 bg-transparent border-0 border-b-2 border-gray-300 appearance-none dark:text-white dark:border-gray-600 dark:focus:border-blue-500 focus:outline-none focus:ring-0 focus:border-blue-600 peer"
+              placeholder="Buscar por nome do serviço, funcionário ou animal" />
+          </div>
+        </div>
+        <div class="flex flex-col gap-2 min-w-56">
+          <label for="ordenacao" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Ordenação</label>
+          <select id="ordenacao" @bind="tipoOrdenacao"
+            class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500">
+            <option selected value="data_desc">Data (Mais Recente)</option>
+            <option value="data_asc">Data (Mais Antiga)</option>
+            <option value="nome_asc">Nome (A-Z)</option>
+            <option value="nome_desc">Nome (Z-A)</option>
+            <option value="status_asc">Status (A-Z)</option>
+            <option value="status_desc">Status (Z-A)</option>
+            <option value="valor_asc">Valor (Menor-Maior)</option>
+            <option value="valor_desc">Valor (Maior-Menor)</option>
+          </select>
+        </div>
+        <div class="flex items-end w-44">
+          <button @onclick="LimparFiltros"
+            class="px-4 py-2 text-xs h-12 font-medium text-white bg-gray-600 rounded-lg hover:bg-gray-700 focus:ring-4 focus:outline-none focus:ring-gray-300">
+            Limpar Filtros
+          </button>
+        </div>
+      </div>
+    </div>
+    <button type="button" @onclick="ShowModal"
+      class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">Cadastrar
+      Serviço</button>
+  </div>
+
+  <div class="bg-gray-50 dark:bg-gray-800 rounded-lg w-full shadow-sm border-2 border-gray-200 dark:border-gray-700">
+    <div class="px-4 py-3 flex flex-col gap-4 text-gray-700 dark:text-gray-300">
+      <div class="font-bold">Filtrar por Status</div>
+      <div class="flex flex-wrap gap-2">
+        <button @onclick="() => FiltrarPorStatus(null)" class="@GetStatusFilterClass(null)">
+          Todos
+        </button>
+        @foreach (StatusServico status in Enum.GetValues<StatusServico>())
+        {
+          <button @onclick="() => FiltrarPorStatus(status)" class="@GetStatusFilterClass(status)">
+            @GetStatusText(status)
+          </button>
+        }
+      </div>
+    </div>
+  </div>
+
+  <h2 class="text-xl font-semibold mb-4 text-gray-800 dark:text-white">Serviços Cadastrados</h2>
+
+  <div class="grid grid-cols-[repeat(2,minmax(350px,1fr))] 2xl:grid-cols-[repeat(3,minmax(350px,1fr))] gap-4">
+    @if (isLoading)
+    {
+      @for (int i = 0; i < 9; i++)
+      {
+        <div role="status"
+          class="bg-gray-50 dark:bg-gray-800 rounded-lg shadow-sm border-2 border-gray-200 dark:border-gray-700 flex flex-col justify-between animate-pulse">
+          <div class="px-4 py-3 grid grid-cols-2 gap-4">
+            <div>
+              <div class="h-4 bg-gray-200 rounded-full dark:bg-gray-700 w-16 mb-2"></div>
+              <div class="h-3 bg-gray-200 rounded-full dark:bg-gray-700 w-24"></div>
+            </div>
+            <div>
+              <div class="h-4 bg-gray-200 rounded-full dark:bg-gray-700 w-12 mb-2"></div>
+              <div class="h-3 bg-gray-200 rounded-full dark:bg-gray-700 w-20"></div>
+            </div>
+            <div>
+              <div class="h-4 bg-gray-200 rounded-full dark:bg-gray-700 w-20 mb-2"></div>
+              <div class="h-3 bg-gray-200 rounded-full dark:bg-gray-700 w-32"></div>
+            </div>
+            <div>
+              <div class="h-4 bg-gray-200 rounded-full dark:bg-gray-700 w-14 mb-2"></div>
+              <div class="h-3 bg-gray-200 rounded-full dark:bg-gray-700 w-16"></div>
+            </div>
+          </div>
+          <div class="flex justify-center gap-6 py-3 px-4 bg-gray-200 dark:bg-gray-700 rounded-b-lg">
+            <div class="h-10 bg-gray-300 rounded-lg dark:bg-gray-600 w-20"></div>
+            <div class="h-10 bg-gray-300 rounded-lg dark:bg-gray-600 w-20"></div>
+          </div>
+          <span class="sr-only">Loading...</span>
+        </div>
+      }
+    }
+    else if (servicosList != null && servicosList.Any())
+    {
+      @foreach (var servico in servicosFiltrados)
+      {
+        <div
+          class="bg-gray-50 dark:bg-gray-800 rounded-lg shadow-sm border-2 border-gray-200 dark:border-gray-700 flex flex-col justify-between">
+          <div class="px-4 py-3 grid grid-cols-2 gap-4 text-gray-700 dark:text-gray-300">
+            <div>
+              <div class="font-bold">Nome</div>
+              <div>@servico.NomeServ</div>
+            </div>
+            <div>
+              <div class="font-bold">Status</div>
+              <div class="@GetStatusColor(servico.Status)">@GetStatusText(servico.Status)</div>
+            </div>
+            <div>
+              <div class="font-bold">Funcionário</div>
+              <div>@(servico.Funcionario?.NomeFunc ?? "N/A")</div>
+            </div>
+            <div>
+              <div class="font-bold">Animal</div>
+              <div>@(servico.Animal?.NomeAni ?? "N/A")</div>
+            </div>
+            <div>
+              <div class="font-bold">Data/Hora</div>
+              <div>@servico.DataServico.ToString("dd/MM/yyyy HH:mm")</div>
+            </div>
+            <div>
+              <div class="font-bold">Valor</div>
+              <div>@servico.ValorServ.ToString("C")</div>
+            </div>
+            @if (!string.IsNullOrEmpty(servico.DescricaoServ))
+            {
+              <div class="col-span-2">
+                <div class="font-bold">Descrição</div>
+                <div class="text-sm">@servico.DescricaoServ</div>
+              </div>
+            }
+          </div>
+
+          <div class="flex justify-center gap-6 py-3 px-4 bg-gray-200 dark:bg-gray-700 rounded-b-lg">
+            <button @onclick="() => EditarServico(servico)"
+              class="inline-flex cursor-pointer items-center text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">
+              <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z">
+                </path>
+              </svg>
+              Editar
+            </button>
+            <button @onclick="() => ExcluirServico(servico.Id)"
+              class="inline-flex cursor-pointer items-center px-3 py-2 text-sm font-medium text-center text-white bg-red-700 rounded-lg hover:bg-red-800 focus:ring-4 focus:outline-none focus:ring-red-300 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-800">
+              <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16">
+                </path>
+              </svg>
+              Excluir
+            </button>
+          </div>
+        </div>
+      }
+    }
+    else
+    {
+      <div
+        class="bg-white w-full col-span-3 dark:bg-gray-800 p-4 rounded-lg text-center text-gray-500 dark:text-gray-400 border-2 border-gray-200 dark:border-gray-700">
+        Nenhum serviço cadastrado
+      </div>
+    }
+  </div>
+
+  <!-- Modal -->
+  <div id="default-modal" tabindex="-1" aria-hidden="true" data-modal-backdrop="static"
+    class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full">
+    <div class="relative p-4 w-full max-w-3xl max-h-full">
+      <div class="relative bg-white rounded-lg shadow-sm dark:bg-gray-700">
+        <div
+          class="flex items-center justify-between p-4 md:p-5 border-b rounded-t dark:border-gray-600 border-gray-200">
+          <h3 class="text-xl font-semibold text-gray-900 dark:text-white">
+            @(modoEdicao ? "Editar Serviço" : "Cadastrar Serviço")
+          </h3>
+          <button type="button" @onclick="CloseModal"
+            class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white">
+            <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
+              <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6" />
+            </svg>
+          </button>
+        </div>
+
+        <EditForm Model="@servico" OnValidSubmit="HandleValidSubmit" class="p-4">
+          <DataAnnotationsValidator />
+
+          <div class="grid grid-cols-2 gap-4">
+            <div class="relative z-0 w-full mb-5 group">
+              <input @bind="servico.NomeServ" id="floating_nome"
+                class="block py-2.5 px-0 w-full text-sm text-gray-900 bg-transparent border-0 border-b-2 border-gray-300 appearance-none dark:text-white dark:border-gray-600 dark:focus:border-blue-500 focus:outline-none focus:ring-0 focus:border-blue-600 peer"
+                placeholder=" " required />
+              <label for="floating_nome"
+                class="peer-focus:font-medium absolute text-sm text-gray-500 dark:text-gray-400 duration-300 transform -translate-y-6 scale-75 top-3 -z-10 origin-[0] peer-focus:start-0 rtl:peer-focus:translate-x-1/4 peer-focus:text-blue-600 peer-focus:dark:text-blue-500 peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-6">Nome
+                do Serviço</label>
+            </div>
+
+            <div class="relative z-0 w-full mb-5 group">
+              <input @bind="servico.ValorServ" type="number" step="0.01" id="floating_valor"
+                class="block py-2.5 px-0 w-full text-sm text-gray-900 bg-transparent border-0 border-b-2 border-gray-300 appearance-none dark:text-white dark:border-gray-600 dark:focus:border-blue-500 focus:outline-none focus:ring-0 focus:border-blue-600 peer"
+                placeholder=" " required />
+              <label for="floating_valor"
+                class="peer-focus:font-medium absolute text-sm text-gray-500 dark:text-gray-400 duration-300 transform -translate-y-6 scale-75 top-3 -z-10 origin-[0] peer-focus:start-0 rtl:peer-focus:translate-x-1/4 peer-focus:text-blue-600 peer-focus:dark:text-blue-500 peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-6">Valor</label>
+            </div>
+          </div>
+
+          <div class="relative z-0 w-full mb-5 group">
+            <textarea @bind="servico.DescricaoServ" id="floating_descricao" rows="3"
+              class="block py-2.5 px-0 w-full text-sm text-gray-900 bg-transparent border-0 border-b-2 border-gray-300 appearance-none dark:text-white dark:border-gray-600 dark:focus:border-blue-500 focus:outline-none focus:ring-0 focus:border-blue-600 peer resize-none"
+              placeholder=" "></textarea>
+            <label for="floating_descricao"
+              class="peer-focus:font-medium absolute text-sm text-gray-500 dark:text-gray-400 duration-300 transform -translate-y-6 scale-75 top-3 -z-10 origin-[0] peer-focus:start-0 rtl:peer-focus:translate-x-1/4 peer-focus:text-blue-600 peer-focus:dark:text-blue-500 peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-6">Descrição</label>
+          </div>
+
+          <div class="grid grid-cols-2 gap-4">
+            <div class="relative z-0 w-full mb-5 group">
+              <label for="select_funcionario"
+                class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Funcionário</label>
+              <select id="select_funcionario" @bind="servico.FuncionarioId"
+                class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500">
+                <option value="">Selecione um funcionário</option>
+                @foreach (var funcionario in funcionariosList)
+                {
+                  <option value="@funcionario.Id">@funcionario.NomeFunc - @funcionario.CargoFunc</option>
+                }
+              </select>
+            </div>
+
+            <div class="relative z-0 w-full mb-5 group">
+              <label for="select_animal"
+                class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Animal</label>
+              <select id="select_animal" @bind="servico.AnimalId"
+                class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500">
+                <option value="">Selecione um animal</option>
+                @foreach (var animal in animaisList)
+                {
+                  <option value="@animal.Id">@animal.NomeAni (@animal.TipoAni) - @(animal.DonoNome ?? "Sem dono")</option>
+                }
+              </select>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-4">
+            <div class="relative z-0 w-full mb-5 group">
+              <label for="select_status"
+                class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Status</label>
+              <select id="select_status" @bind="servico.Status"
+                class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500">
+                @foreach (StatusServico status in Enum.GetValues<StatusServico>())
+                {
+                  <option value="@status">@GetStatusText(status)</option>
+                }
+              </select>
+            </div>
+          </div>
+
+          <div class="flex items-center rounded-b dark:border-gray-600">
+            <button type="submit"
+              class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">
+              @(modoEdicao ? "Atualizar" : "Cadastrar")</button>
+            <button type="button" @onclick="CloseModal"
+              class="py-2.5 px-5 ms-3 text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-100 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700">Cancelar</button>
+          </div>
+        </EditForm>
+      </div>
+    </div>
+  </div>
+</div>
+
+@code {
+  private Servico servico = new Servico();
+  private List<Servico> servicosList = new List<Servico>();
+  private List<Servico> servicosFiltrados = new List<Servico>();
+  private List<Funcionario> funcionariosList = new List<Funcionario>();
+  private List<Animal> animaisList = new List<Animal>();
+  private bool modoEdicao = false;
+  private string filtroTexto = "";
+  private string tipoOrdenacao = "data_desc";
+  private StatusServico? filtroStatus = null;
+  private bool isLoading = true;
+
+  protected override async Task OnInitializedAsync()
+  {
+    await CarregarDados();
+  }
+
+  private async Task CarregarDados()
+  {
+    try
+    {
+      isLoading = true;
+      StateHasChanged();
+
+      await Task.Delay(1000);
+
+      await CarregarServicos();
+      await CarregarFuncionarios();
+      await CarregarAnimais();
+
+      await AplicarFiltros();
+    }
+    catch (Exception ex)
+    {
+      isLoading = false;
+      StateHasChanged();
+      ToastService.ShowError($"Erro ao carregar dados: {ex.Message}");
+    }
+  }
+
+  private async Task CarregarServicos()
+  {
+    servicosList = await ServicoService.GetServicos() ?? new List<Servico>();
+  }
+
+  private async Task CarregarFuncionarios()
+  {
+    funcionariosList = await FuncionarioService.GetFuncionarios() ?? new List<Funcionario>();
+  }
+
+  private async Task CarregarAnimais()
+  {
+    animaisList = await AnimalService.GetAnimais() ?? new List<Animal>();
+  }
+
+  private async Task AplicarFiltros()
+  {
+    isLoading = true;
+    StateHasChanged();
+
+    await Task.Delay(500);
+
+    var resultados = servicosList.AsEnumerable();
+
+    if (!string.IsNullOrWhiteSpace(filtroTexto))
+    {
+      resultados = resultados.Where(s =>
+      s.NomeServ.Contains(filtroTexto, StringComparison.OrdinalIgnoreCase) ||
+      (s.Funcionario?.NomeFunc?.Contains(filtroTexto, StringComparison.OrdinalIgnoreCase) == true) ||
+      (s.Animal?.NomeAni?.Contains(filtroTexto, StringComparison.OrdinalIgnoreCase) == true) ||
+      GetStatusText(s.Status).Contains(filtroTexto, StringComparison.OrdinalIgnoreCase));
+    }
+
+    if (filtroStatus.HasValue)
+    {
+      resultados = resultados.Where(s => s.Status == filtroStatus.Value);
+    }
+
+    var lista = resultados.ToList();
+
+    switch (tipoOrdenacao)
+    {
+      case "data_asc":
+        lista = lista.OrderBy(s => s.DataServico).ToList();
+        break;
+      case "data_desc":
+        lista = lista.OrderByDescending(s => s.DataServico).ToList();
+        break;
+      case "nome_asc":
+        lista = lista.OrderBy(s => s.NomeServ).ToList();
+        break;
+      case "nome_desc":
+        lista = lista.OrderByDescending(s => s.NomeServ).ToList();
+        break;
+      case "status_asc":
+        lista = lista.OrderBy(s => s.Status).ToList();
+        break;
+      case "status_desc":
+        lista = lista.OrderByDescending(s => s.Status).ToList();
+        break;
+      case "valor_asc":
+        lista = lista.OrderBy(s => s.ValorServ).ToList();
+        break;
+      case "valor_desc":
+        lista = lista.OrderByDescending(s => s.ValorServ).ToList();
+        break;
+    }
+
+    servicosFiltrados = lista;
+
+    isLoading = false;
+    StateHasChanged();
+  }
+
+  private async Task LimparFiltros()
+  {
+    filtroTexto = "";
+    tipoOrdenacao = "data_desc";
+    filtroStatus = null;
+    await AplicarFiltros();
+  }
+
+  private async Task FiltrarPorStatus(StatusServico? status)
+  {
+    filtroStatus = status;
+    await AplicarFiltros();
+  }
+
+  private string GetStatusFilterClass(StatusServico? status)
+  {
+    var baseClass = "px-4 py-2 text-sm font-medium rounded-lg transition-colors duration-200";
+    var activeClass = "text-white bg-blue-600 hover:bg-blue-700";
+    var inactiveClass = "text-gray-700 bg-gray-200 hover:bg-gray-300 dark:text-gray-300 dark:bg-gray-600 dark:hover:bg-gray-500";
+    
+    return filtroStatus == status ? $"{baseClass} {activeClass}" : $"{baseClass} {inactiveClass}";
+  }
+
+  private void LimparCampos()
+  {
+    servico = new Servico
+    {
+      DataServico = DateTime.Now.AddDays(1),
+      Status = StatusServico.Agendado
+    };
+    modoEdicao = false;
+  }
+
+  private async Task ShowModal()
+  {
+    if (!modoEdicao)
+    {
+      servico.DataServico = DateTime.Now.AddDays(1);
+    }
+    await JS.InvokeVoidAsync("flowbiteInterop.showModal", "default-modal");
+  }
+
+  private async Task CloseModal()
+  {
+    LimparCampos();
+    await JS.InvokeVoidAsync("flowbiteInterop.closeModal", "default-modal");
+  }
+
+  private async Task HandleValidSubmit()
+  {
+    try
+    {
+      await Task.Delay(1000);
+
+      if (modoEdicao)
+      {
+        await ServicoService.UpdateServico(servico);
+        ToastService.ShowSuccess("Serviço atualizado com sucesso!");
+      }
+      else
+      {
+        await ServicoService.CreateServico(servico);
+        ToastService.ShowSuccess("Serviço cadastrado com sucesso!");
+      }
+
+      LimparCampos();
+      await CarregarServicos();
+      await AplicarFiltros();
+      await JS.InvokeVoidAsync("flowbiteInterop.closeModal", "default-modal");
+    }
+    catch (Exception ex)
+    {
+      string mensagemErro = ex.InnerException?.Message ?? ex.Message;
+      ToastService.ShowError($"Erro ao {(modoEdicao ? "atualizar" : "cadastrar")} serviço: {mensagemErro}");
+    }
+  }
+
+  private void EditarServico(Servico servicoParaEditar)
+  {
+    servico = new Servico
+    {
+      Id = servicoParaEditar.Id,
+      NomeServ = servicoParaEditar.NomeServ,
+      DescricaoServ = servicoParaEditar.DescricaoServ,
+      DuracaoServ = servicoParaEditar.DuracaoServ,
+      ValorServ = servicoParaEditar.ValorServ,
+      FuncionarioId = servicoParaEditar.FuncionarioId,
+      AnimalId = servicoParaEditar.AnimalId,
+      DataServico = servicoParaEditar.DataServico,
+      Status = servicoParaEditar.Status
+    };
+
+    modoEdicao = true;
+    JS.InvokeVoidAsync("flowbiteInterop.showModal", "default-modal");
+  }
+
+  private async Task ExcluirServico(int id)
+  {
+    try
+    {
+      await Task.Delay(1000);
+
+      await ServicoService.DeleteServico(id);
+      await CarregarServicos();
+      await AplicarFiltros();
+      ToastService.ShowSuccess("Serviço excluído com sucesso!");
+    }
+    catch (Exception ex)
+    {
+      ToastService.ShowError($"Erro ao excluir serviço: {ex.Message}");
+    }
+  }
+
+  private string GetStatusText(StatusServico status)
+  {
+    return status switch
+    {
+      StatusServico.Agendado => "Agendado",
+      StatusServico.EmAndamento => "Em Andamento",
+      StatusServico.Concluido => "Concluído",
+      StatusServico.Cancelado => "Cancelado",
+      _ => status.ToString()
+    };
+  }
+
+  private string GetStatusColor(StatusServico status)
+  {
+    return status switch
+    {
+      StatusServico.Agendado => "text-blue-600 dark:text-blue-400",
+      StatusServico.EmAndamento => "text-yellow-600 dark:text-yellow-400",
+      StatusServico.Concluido => "text-green-600 dark:text-green-400",
+      StatusServico.Cancelado => "text-red-600 dark:text-red-400",
+      _ => ""
+    };
+  }
+}
