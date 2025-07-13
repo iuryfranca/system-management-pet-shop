@@ -45,6 +45,8 @@ alwaysApply: false
 
 ## Padrões de CSS com Tailwind
 
+- Sempre priorize o uso de flex e grid com gap ao inves de paddings e margins para espaçamentos
+
 ### Classes Responsivas
 ```html
 <!-- Mobile first approach -->

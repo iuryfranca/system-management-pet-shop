@@ -4,15 +4,18 @@
 @using Microsoft.AspNetCore.Components.Forms
 @using Microsoft.JSInterop
 @using BlazorInputMask
+@using System.Linq
 @inject FuncionarioService FuncionarioService
 @inject NavigationManager NavigationManager
 @inject ToastService ToastService
+@inject AuthService AuthService
 @inject IJSRuntime JS
+@implements IDisposable
 
-<PageTitle>Perfil do Funcionário</PageTitle>
+<PageTitle>@(funcionarioLogado?.NomeFunc ?? "Perfil do Funcionário") - Sistema Pet Shop</PageTitle>
 
 <div class="flex flex-col gap-4">
-  <Header Title="Perfil do Funcionário"
+  <Header Title="@(funcionarioLogado?.NomeFunc ?? "Perfil do Funcionário")"
     Description="Visualize e gerencie suas informações pessoais e credenciais de acesso." />
 
   @if (isLoading)
@@ -143,8 +146,12 @@
           d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.732-.833-2.5 0L4.314 16.5c-.77.833.192 2.5 1.732 2.5z">
         </path>
       </svg>
-      <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-2">Funcionário não encontrado</h3>
-      <p class="text-gray-500 dark:text-gray-400">Não foi possível encontrar o funcionário com o email especificado.</p>
+      <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-2">Perfil não encontrado</h3>
+      <p class="text-gray-500 dark:text-gray-400">Não foi possível carregar as informações do seu perfil. Faça login novamente.</p>
+      <button @onclick="@(() => NavigationManager.NavigateTo("/"))" 
+        class="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+        Fazer Login
+      </button>
     </div>
   }
 
@@ -205,17 +212,29 @@
           <div class="relative z-0 w-full mb-5 group">
             <input @bind="funcionarioEdicao.EmailFunc" type="email" id="floating_email"
               class="block py-2.5 px-0 w-full text-sm text-gray-900 bg-transparent border-0 border-b-2 border-gray-300 appearance-none dark:text-white dark:border-gray-600 dark:focus:border-blue-500 focus:outline-none focus:ring-0 focus:border-blue-600 peer"
-              placeholder=" " required />
+              placeholder=" " required readonly="@(funcionarioEdicao.EmailFunc == "admin@petshop.com")" />
             <label for="floating_email"
               class="peer-focus:font-medium absolute text-sm text-gray-500 dark:text-gray-400 duration-300 transform -translate-y-6 scale-75 top-3 -z-10 origin-[0] peer-focus:start-0 rtl:peer-focus:translate-x-1/4 peer-focus:text-blue-600 peer-focus:dark:text-blue-500 peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-6">Email</label>
+            @if (funcionarioEdicao.EmailFunc == "admin@petshop.com")
+            {
+              <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">O email do administrador não pode ser alterado.</p>
+            }
           </div>
 
           <div class="flex items-center rounded-b dark:border-gray-600">
-            <button type="submit"
-              class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">
-              Atualizar Perfil</button>
-            <button type="button" @onclick="CloseModalEditar"
-              class="py-2.5 px-5 ms-3 text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-100 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700">Cancelar</button>
+            <button type="submit" disabled="@isEditando"
+              class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800 disabled:opacity-50">
+              @if (isEditando)
+              {
+                <span>Atualizando...</span>
+              }
+              else
+              {
+                <span>Atualizar Perfil</span>
+              }
+            </button>
+            <button type="button" @onclick="CloseModalEditar" disabled="@isEditando"
+              class="py-2.5 px-5 ms-3 text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-100 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700 disabled:opacity-50">Cancelar</button>
           </div>
         </EditForm>
       </div>
@@ -260,11 +279,19 @@
           </div>
 
           <div class="flex items-center rounded-b dark:border-gray-600">
-            <button type="submit"
-              class="text-white bg-yellow-600 hover:bg-yellow-700 focus:ring-4 focus:outline-none focus:ring-yellow-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-yellow-600 dark:hover:bg-yellow-700 dark:focus:ring-yellow-800">
-              Alterar Senha</button>
-            <button type="button" @onclick="CloseModalSenha"
-              class="py-2.5 px-5 ms-3 text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-100 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700">Cancelar</button>
+            <button type="submit" disabled="@isTrocandoSenha"
+              class="text-white bg-yellow-600 hover:bg-yellow-700 focus:ring-4 focus:outline-none focus:ring-yellow-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-yellow-600 dark:hover:bg-yellow-700 dark:focus:ring-yellow-800 disabled:opacity-50">
+              @if (isTrocandoSenha)
+              {
+                <span>Alterando...</span>
+              }
+              else
+              {
+                <span>Alterar Senha</span>
+              }
+            </button>
+            <button type="button" @onclick="CloseModalSenha" disabled="@isTrocandoSenha"
+              class="py-2.5 px-5 ms-3 text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-100 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700 disabled:opacity-50">Cancelar</button>
           </div>
         </EditForm>
       </div>
@@ -273,12 +300,12 @@
 </div>
 
 @code {
-  private const string EMAIL_FUNCIONARIO_LOGADO = "iurygfranca@gmail.com";
-
   private Funcionario? funcionarioLogado;
   private Funcionario funcionarioEdicao = new Funcionario();
   private TrocarSenhaModel trocarSenhaModel = new TrocarSenhaModel();
   private bool isLoading = true;
+  private bool isEditando = false;
+  private bool isTrocandoSenha = false;
 
   public class TrocarSenhaModel
   {
@@ -288,7 +315,37 @@
 
   protected override async Task OnInitializedAsync()
   {
+    if (!await AuthService.IsAuthenticatedAsync())
+    {
+      NavigationManager.NavigateTo("/");
+      return;
+    }
+
+    AuthService.OnAuthStateChanged += OnAuthStateChanged;
     await CarregarPerfilFuncionario();
+  }
+
+  private async void OnAuthStateChanged()
+  {
+    if (!await AuthService.IsAuthenticatedAsync())
+    {
+      NavigationManager.NavigateTo("/");
+    }
+    else
+    {
+      ResetarEstados();
+      await InvokeAsync(CarregarPerfilFuncionario);
+    }
+  }
+
+  private void ResetarEstados()
+  {
+    funcionarioLogado = null;
+    funcionarioEdicao = new Funcionario();
+    trocarSenhaModel = new TrocarSenhaModel();
+    isLoading = true;
+    isEditando = false;
+    isTrocandoSenha = false;
   }
 
   private async Task CarregarPerfilFuncionario()
@@ -298,9 +355,32 @@
       isLoading = true;
       StateHasChanged();
 
-      await Task.Delay(1500); // Simula carregamento
+      await Task.Delay(500);
 
-      funcionarioLogado = await FuncionarioService.GetFuncionarioByEmail(EMAIL_FUNCIONARIO_LOGADO);
+      var funcionarioLogadoAuth = await AuthService.GetFuncionarioLogadoAsync();
+      if (funcionarioLogadoAuth != null)
+      {
+        if (funcionarioLogadoAuth.EmailFunc == "admin@petshop.com")
+        {
+          funcionarioLogado = funcionarioLogadoAuth;
+        }
+        else
+        {
+          funcionarioLogado = await FuncionarioService.GetFuncionarioByEmail(funcionarioLogadoAuth.EmailFunc);
+          if (funcionarioLogado == null)
+          {
+            ToastService.ShowError("Funcionário não encontrado no banco de dados");
+            NavigationManager.NavigateTo("/");
+            return;
+          }
+        }
+      }
+      else
+      {
+        ToastService.ShowError("Sessão expirada, faça login novamente");
+        NavigationManager.NavigateTo("/");
+        return;
+      }
     }
     catch (Exception ex)
     {
@@ -334,6 +414,7 @@
   private async Task CloseModalEditar()
   {
     funcionarioEdicao = new Funcionario();
+    isEditando = false;
     await JS.InvokeVoidAsync("flowbiteInterop.closeModal", "editar-modal");
   }
 
@@ -346,6 +427,7 @@
   private async Task CloseModalSenha()
   {
     trocarSenhaModel = new TrocarSenhaModel();
+    isTrocandoSenha = false;
     await JS.InvokeVoidAsync("flowbiteInterop.closeModal", "senha-modal");
   }
 
@@ -353,17 +435,81 @@
   {
     try
     {
+      isEditando = true;
+      StateHasChanged();
+
+      if (string.IsNullOrWhiteSpace(funcionarioEdicao.NomeFunc))
+      {
+        ToastService.ShowError("Nome é obrigatório!");
+        return;
+      }
+
+      if (funcionarioEdicao.NomeFunc.Trim().Length < 2)
+      {
+        ToastService.ShowError("Nome deve ter pelo menos 2 caracteres!");
+        return;
+      }
+
+      if (string.IsNullOrWhiteSpace(funcionarioEdicao.EmailFunc))
+      {
+        ToastService.ShowError("Email é obrigatório!");
+        return;
+      }
+
+      if (!IsValidEmail(funcionarioEdicao.EmailFunc))
+      {
+        ToastService.ShowError("Email deve ter um formato válido!");
+        return;
+      }
+
+      if (string.IsNullOrWhiteSpace(funcionarioEdicao.CargoFunc))
+      {
+        ToastService.ShowError("Cargo é obrigatório!");
+        return;
+      }
+
       if (!string.IsNullOrWhiteSpace(funcionarioEdicao.TelefoneFunc))
       {
         funcionarioEdicao.TelefoneFunc = LimparTelefone(funcionarioEdicao.TelefoneFunc);
+        if (funcionarioEdicao.TelefoneFunc.Length < 10)
+        {
+          ToastService.ShowError("Telefone deve ter pelo menos 10 dígitos!");
+          return;
+        }
       }
 
-      await Task.Delay(1000);
+      if (funcionarioEdicao.EmailFunc != funcionarioLogado.EmailFunc)
+      {
+        if (funcionarioEdicao.EmailFunc == "admin@petshop.com" && funcionarioLogado.EmailFunc != "admin@petshop.com")
+        {
+          ToastService.ShowError("Este email é reservado para o administrador!");
+          return;
+        }
 
-      await FuncionarioService.UpdateFuncionario(funcionarioEdicao);
+        var funcionarioExistente = await FuncionarioService.GetFuncionarioByEmail(funcionarioEdicao.EmailFunc);
+        if (funcionarioExistente != null)
+        {
+          ToastService.ShowError("Este email já está sendo usado por outro funcionário!");
+          return;
+        }
+      }
 
-      // Atualizar os dados exibidos
-      funcionarioLogado = funcionarioEdicao;
+      await Task.Delay(500);
+
+      if (funcionarioEdicao.EmailFunc != "admin@petshop.com")
+      {
+        await FuncionarioService.UpdateFuncionario(funcionarioEdicao);
+      }
+
+      funcionarioLogado = new Funcionario
+      {
+        Id = funcionarioEdicao.Id,
+        NomeFunc = funcionarioEdicao.NomeFunc,
+        CargoFunc = funcionarioEdicao.CargoFunc,
+        TelefoneFunc = funcionarioEdicao.TelefoneFunc,
+        EmailFunc = funcionarioEdicao.EmailFunc,
+        SenhaFunc = funcionarioEdicao.SenhaFunc
+      };
 
       ToastService.ShowSuccess("Perfil atualizado com sucesso!");
       await CloseModalEditar();
@@ -373,6 +519,11 @@
       Console.WriteLine($"Erro completo: {ex}");
       string mensagemErro = ex.InnerException != null ? $"{ex.Message} - {ex.InnerException.Message}" : ex.Message;
       ToastService.ShowError($"Erro ao atualizar perfil: {mensagemErro}");
+    }
+    finally
+    {
+      isEditando = false;
+      StateHasChanged();
     }
   }
 
@@ -394,15 +545,24 @@
         return;
       }
 
-      if (string.IsNullOrWhiteSpace(trocarSenhaModel.NovaSenha) || trocarSenhaModel.NovaSenha.Length < 6)
+      if (string.IsNullOrWhiteSpace(trocarSenhaModel.NovaSenha) || trocarSenhaModel.NovaSenha.Length < 8)
       {
-        ToastService.ShowError("A senha deve ter pelo menos 6 caracteres!");
+        ToastService.ShowError("A senha deve ter pelo menos 8 caracteres!");
+        return;
+      }
+
+      if (!IsValidPassword(trocarSenhaModel.NovaSenha))
+      {
+        ToastService.ShowError("A senha deve conter pelo menos uma letra maiúscula, uma minúscula e um número!");
         return;
       }
 
       if (funcionarioLogado == null) return;
 
-      await Task.Delay(1000);
+      isTrocandoSenha = true;
+      StateHasChanged();
+
+      await Task.Delay(500);
 
       var funcionarioAtualizado = new Funcionario
       {
@@ -411,11 +571,15 @@
         CargoFunc = funcionarioLogado.CargoFunc,
         TelefoneFunc = funcionarioLogado.TelefoneFunc,
         EmailFunc = funcionarioLogado.EmailFunc,
-        SenhaFunc = trocarSenhaModel.NovaSenha
+        SenhaFunc = AuthService.HashPassword(trocarSenhaModel.NovaSenha)
       };
 
-      await FuncionarioService.UpdateFuncionario(funcionarioAtualizado);
-      funcionarioLogado.SenhaFunc = trocarSenhaModel.NovaSenha;
+      if (funcionarioLogado.EmailFunc != "admin@petshop.com")
+      {
+        await FuncionarioService.UpdateFuncionario(funcionarioAtualizado);
+      }
+
+      funcionarioLogado.SenhaFunc = funcionarioAtualizado.SenhaFunc;
 
       ToastService.ShowSuccess("Senha alterada com sucesso!");
       await CloseModalSenha();
@@ -423,6 +587,11 @@
     catch (Exception ex)
     {
       ToastService.ShowError($"Erro ao alterar senha: {ex.Message}");
+    }
+    finally
+    {
+      isTrocandoSenha = false;
+      StateHasChanged();
     }
   }
 
@@ -446,5 +615,28 @@
     }
     
     return telefone;
+  }
+
+  private bool IsValidEmail(string email)
+  {
+    try
+    {
+      var addr = new System.Net.Mail.MailAddress(email);
+      return addr.Address == email;
+    }
+    catch
+    {
+      return false;
+    }
+  }
+
+  private bool IsValidPassword(string password)
+  {
+    return password.Any(char.IsUpper) && password.Any(char.IsLower) && password.Any(char.IsDigit);
+  }
+
+  public void Dispose()
+  {
+    AuthService.OnAuthStateChanged -= OnAuthStateChanged;
   }
 }

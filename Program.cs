@@ -16,9 +16,10 @@ builder.Services.AddScoped<ServicoProdutoService>();
 builder.Services.AddScoped<SideMenuService>();
 builder.Services.AddScoped<IFlowbiteService, FlowbiteService>();
 builder.Services.AddScoped<ToastService>();
+builder.Services.AddScoped<AuthService>();
 
 string mySqlConnectionStr = builder.Configuration.GetConnectionString("DefaultConnection");
-builder.Services.AddDbContextPool<ContextDB>(options =>
+builder.Services.AddDbContext<ContextDB>(options =>
     options.UseMySql(mySqlConnectionStr, ServerVersion.AutoDetect(mySqlConnectionStr))
 );
 

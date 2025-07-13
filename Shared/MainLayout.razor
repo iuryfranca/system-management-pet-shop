@@ -1,23 +1,87 @@
 ﻿@inherits LayoutComponentBase
 @using SystemManagementPetshop.Services
-
+@using Microsoft.AspNetCore.Components.Routing
+@inject NavigationManager NavigationManager
+@inject AuthService AuthService
+@implements IDisposable
 
 <div class="@SideMenuService.BodyCssClass">
-   <div>
-      <NavMenu />
-   </div>
-   <div class="min-h-screen sm:p-8 p-4 w-full">@Body</div>
-   <Toast />
+   @if (!isInitialized)
+   {
+      <!-- Loading state -->
+      <div class="min-h-screen w-full flex items-center justify-center">
+         <div class="text-center">
+            <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mx-auto mb-4"></div>
+            <p class="text-gray-600 dark:text-gray-400">Carregando...</p>
+         </div>
+      </div>
+   }
+   else
+   {
+      @if (!IsLoginPage)
+      {
+         @if (AuthService.IsAuthenticated)
+         {
+            <div>
+               <NavMenu />
+            </div>
+         }
+         else
+         {
+            <div class="min-h-screen w-full flex items-center justify-center absolute top-0 left-0 right-0 bottom-0">
+               <div class="text-center">
+                  <h1 class="text-2xl font-bold text-gray-900 dark:text-white mb-4">Acesso Negado</h1>
+                  <p class="text-gray-600 dark:text-gray-400 mb-4">Você precisa estar logado para acessar esta página.</p>
+                  <button @onclick="RedirectToLogin"
+                     class="text-white bg-green-700 hover:bg-green-800 focus:ring-4 focus:outline-none focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-green-600 dark:hover:bg-green-700 dark:focus:ring-green-800">
+                     Fazer Login
+                  </button>
+               </div>
+            </div>
+         }
+      }
+      <div class="@(IsLoginPage ? "min-h-screen w-full" : "min-h-screen sm:p-8 p-4 w-full")">
+         @if (IsLoginPage || AuthService.IsAuthenticated)
+         {
+            @Body
+         }
+      </div>
+      <Toast />
+   }
 </div>
-
 
 @code {
    [Inject]
    public SideMenuService SideMenuService { get; set; }
 
-   protected override void OnInitialized()
+   private bool IsLoginPage => NavigationManager.ToBaseRelativePath(NavigationManager.Uri) == "";
+   private bool isInitialized = false;
+
+   protected override async Task OnInitializedAsync()
    {
       SideMenuService.OnChange += StateHasChanged;
+      NavigationManager.LocationChanged += OnLocationChanged;
+      AuthService.OnAuthStateChanged += StateHasChanged;
+
+      await AuthService.IsAuthenticatedAsync();
+      isInitialized = true;
       StateHasChanged();
+   }
+
+   private void OnLocationChanged(object sender, LocationChangedEventArgs e)
+   {
+      StateHasChanged();
+   }
+
+   private void RedirectToLogin()
+   {
+      NavigationManager.NavigateTo("/");
+   }
+
+   public void Dispose()
+   {
+      NavigationManager.LocationChanged -= OnLocationChanged;
+      NavigationManager.LocationChanged -= OnLocationChanged;
+      AuthService.OnAuthStateChanged -= StateHasChanged;
    }
 }

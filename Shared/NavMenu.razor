@@ -1,5 +1,6 @@
 ﻿@using SystemManagementPetshop.Services
 @inherits SystemManagementPetshop.Pages.FlowbitePage
+@inject AuthService AuthService
 
 <div id="cta-button-sidebar"
     class="fixed top-0 left-0 z-40 h-screen border-solid border-r-2 border-gray-200 dark:border-gray-700 transition-all duration-300  @SideMenuService.NavMenuCssClass"
@@ -96,7 +97,7 @@
                         <circle cx="18" cy="18" r="3" />
                     </svg>
 
-                    <span class="flex-1 ms-3 text-left rtl:text-right whitespace-nowrap">Iury França</span>
+                    <span class="flex-1 ms-3 text-left rtl:text-right whitespace-nowrap">@NomeFuncionario</span>
                     <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none"
                         viewBox="0 0 10 6">
                         <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -111,16 +112,21 @@
                         </a>
                     </li>
                     <li>
-                        <a href="/logout"
+                        <button @onclick="HandleLogout"
                             class="flex items-center w-full p-2 text-gray-900 hover:bg-blue-200 transition duration-75 rounded-lg pl-11 group dark:text-white dark:hover:bg-gray-700">
                             Sair
-                        </a>
+                        </button>
                     </li>
                 </ul>
             </div>
         </li>
 
         <ul class="space-y-2 font-medium h-full">
+            <span
+                class="flex items-center w-full p-2 text-sm transition duration-75 mt-6 rounded-lg group dark:text-zinc-300 text-zinc-500">
+                Controle de Serviços
+            </span>
+
             <li>
                 <a href="/"
                     class="flex items-center p-2 text-gray-900 rounded-lg dark:text-white hover:bg-gray-200 dark:hover:bg-gray-700 group">
@@ -136,6 +142,24 @@
                         class="inline-flex items-center justify-center px-2 ms-3 text-sm font-medium text-gray-800 bg-gray-200 rounded-full dark:bg-gray-700 dark:text-gray-400">
                         Novo
                     </span>
+                </a>
+            </li>
+
+            <li>
+                <a href="/gerenciamento-servico"
+                    class="flex items-center p-2 text-gray-900 rounded-lg dark:text-white hover:bg-gray-200 dark:hover:bg-gray-700 group">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                        class="w-5 h-5 text-gray-500 transition duration-75 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white">
+                        <path d="M14 7h3a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2h3" />
+                        <path d="M10.5 6a1.5 1.5 0 1 1 3 0 1.5 1.5 0 0 1-3 0Z" />
+                        <path d="M16 14h-2" />
+                        <path d="M16 18h-2" />
+                        <path d="M8 14h2" />
+                        <path d="M8 18h2" />
+                        <path d="M12 14v4" />
+                    </svg>
+                    <span class="ms-3">Serviços</span>
                 </a>
             </li>
 
@@ -194,48 +218,9 @@
                     <span class="ms-3">Produtos</span>
                 </a>
             </li>
-
-            <span
-                class="flex items-center w-full p-2 text-sm transition duration-75 mt-6 rounded-lg group dark:text-zinc-300 text-zinc-500">
-                Controle de Serviços
-            </span>
-
-            <li>
-                <a href="/"
-                    class="flex items-center p-2 text-gray-900 rounded-lg dark:text-white hover:bg-gray-200 dark:hover:bg-gray-700 group">
-                    <svg class="w-5 h-5 text-gray-500 transition duration-75 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white"
-                        aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 22 21">
-                        <path
-                            d="M16.975 11H10V4.025a1 1 0 0 0-1.066-.998 8.5 8.5 0 1 0 9.039 9.039.999.999 0 0 0-1-1.066h.002Z" />
-                        <path
-                            d="M12.5 0c-.157 0-.311.01-.565.027A1 1 0 0 0 11 1.02V10h8.975a1 1 0 0 0 1-.935c.013-.188.028-.374.028-.565A8.51 8.51 0 0 0 12.5 0Z" />
-                    </svg>
-                    <span class="ms-3">Dashboard</span>
-                    <span
-                        class="inline-flex items-center justify-center px-2 ms-3 text-sm font-medium text-gray-800 bg-gray-200 rounded-full dark:bg-gray-700 dark:text-gray-400">
-                        Novo
-                    </span>
-                </a>
-            </li>
         </ul>
 
-        <button id="theme-toggle" type="button"
-            class="text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-600 outline-none ring-4 ring-gray-200 dark:ring-gray-700 rounded-lg text-sm p-2.5">
-            <div id="theme-toggle-dark-icon" class="hidden flex items-center justify-center gap-4">
-                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"></path>
-                </svg>
-                <span class="font-bold">Dark</span>
-            </div>
-            <div id="theme-toggle-light-icon" class="hidden flex items-center justify-center gap-4">
-                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                    <path
-                        d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z"
-                        fill-rule="evenodd" clip-rule="evenodd"></path>
-                </svg>
-                <span class="font-bold">Light</span>
-            </div>
-        </button>
+        <ThemeToggle />
 
         <div id="dropdown-cta" class="p-4 rounded-lg bg-blue-100 dark:bg-gray-900" role="alert">
             <div class="flex items-center mb-3">
@@ -260,69 +245,35 @@
     </div>
 </div>
 
-<script>
-    if (
-        localStorage.getItem("color-theme") === "dark" ||
-        (!("color-theme" in localStorage) && window.matchMedia("(prefers-color-scheme: dark)").matches)
-    ) {
-        document.documentElement.classList.add("dark")
-    } else {
-        document.documentElement.classList.remove("dark")
-    }
-</script>
-
-<script>
-    var themeToggleDarkIcon = document.getElementById("theme-toggle-dark-icon")
-    var themeToggleLightIcon = document.getElementById("theme-toggle-light-icon")
-
-    if (
-        localStorage.getItem("color-theme") === "dark" ||
-        (!("color-theme" in localStorage) && window.matchMedia("(prefers-color-scheme: dark)").matches)
-    ) {
-        themeToggleLightIcon.classList.remove("hidden")
-    } else {
-        themeToggleDarkIcon.classList.remove("hidden")
-    }
-
-    var themeToggleBtn = document.getElementById("theme-toggle")
-
-    themeToggleBtn.addEventListener("click", function () {
-        themeToggleDarkIcon.classList.toggle("hidden")
-        themeToggleLightIcon.classList.toggle("hidden")
-
-        if (localStorage.getItem("color-theme")) {
-            if (localStorage.getItem("color-theme") === "light") {
-                document.documentElement.classList.add("dark")
-                localStorage.setItem("color-theme", "dark")
-            } else {
-                document.documentElement.classList.remove("dark")
-                localStorage.setItem("color-theme", "light")
-            }
-        } else {
-            if (document.documentElement.classList.contains("dark")) {
-                document.documentElement.classList.remove("dark")
-                localStorage.setItem("color-theme", "light")
-            } else {
-                document.documentElement.classList.add("dark")
-                localStorage.setItem("color-theme", "dark")
-            }
-        }
-    })
-</script>
-
 @implements IDisposable
 @code {
     [Inject]
     public SideMenuService SideMenuService { get; set; }
 
-    protected override void OnInitialized()
+    [Inject]
+    public NavigationManager NavigationManager { get; set; }
+
+    private string NomeFuncionario => AuthService.FuncionarioLogado?.NomeFunc ?? "Usuário";
+
+    protected override async Task OnInitializedAsync()
     {
         SideMenuService.OnChange += StateHasChanged;
+        AuthService.OnAuthStateChanged += StateHasChanged;
+
+        // Garantir que o estado esteja inicializado
+        await AuthService.IsAuthenticatedAsync();
+        StateHasChanged();
     }
 
+    private async Task HandleLogout()
+    {
+        await AuthService.LogoutAsync();
+        NavigationManager.NavigateTo("/");
+    }
 
     public void Dispose()
     {
         SideMenuService.OnChange -= StateHasChanged;
+        AuthService.OnAuthStateChanged -= StateHasChanged;
     }
 }

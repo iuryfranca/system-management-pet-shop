@@ -70,8 +70,8 @@ public class FuncionarioService
         var funcionarioExistente = await _context.Funcionarios.AsNoTracking()
             .FirstOrDefaultAsync(f => f.Id == funcionario.Id);
 
-        if (funcionarioExistente != null && 
-            !string.IsNullOrEmpty(funcionario.SenhaFunc) && 
+        if (funcionarioExistente != null &&
+            !string.IsNullOrEmpty(funcionario.SenhaFunc) &&
             funcionario.SenhaFunc != funcionarioExistente.SenhaFunc)
         {
             // Se a senha é diferente da atual e não parece estar hasheada (muito curta ou muito simples)
@@ -89,7 +89,6 @@ public class FuncionarioService
         return funcionario;
     }
 
-    // Métodos para hash e verificação de senha
     private string HashPassword(string password)
     {
         return BCrypt.Net.BCrypt.HashPassword(password, BCrypt.Net.BCrypt.GenerateSalt());
